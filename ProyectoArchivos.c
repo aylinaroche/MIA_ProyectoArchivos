@@ -30,7 +30,7 @@ int main() {
 
     while(opcion!=0){
 
-        printf("-> Comando: ");
+        printf("\n-> Comando: ");
         fgets(com,500,stdin);
         fflush(stdin);
 
@@ -40,7 +40,7 @@ int main() {
         char *atr;
         if(comando!=NULL){
     	   atr = com2;
-    	 //  verificarComando(comando, atr);
+    	   verificarComando(comando, atr);
         }
     }
     return 0;

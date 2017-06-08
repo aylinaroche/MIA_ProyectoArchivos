@@ -23,6 +23,7 @@ char *com8 = NULL;
 
 void verificarComando(char *com, char *atributos) {
 	limpiarVariables();
+	//	 printf("comando\n");
 
 	char* inst = NULL;
 	int cont = 1;
@@ -76,7 +77,8 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		// imprimirDatos();
-		//crearDisco();
+		crearDisco();
+
 	} else if (strcasecmp(com, "rmdisk") == 0 || strcasecmp(com, "Rmdisk") == 0
 			|| strcasecmp(com, "RMdisk") == 0
 			|| strcasecmp(com, "RMDISK") == 0) {
@@ -111,7 +113,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//   imprimirDatos();
-		//eliminarDisco();
+		eliminarDisco();
 
 	}
 
@@ -183,7 +185,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//      imprimirDatos();
-		//adminParticion();
+		adminParticion();
 		//montarFormato();
 		//formatearDisco("vda1", "full", "0","k","3fs");
 
@@ -232,8 +234,8 @@ void verificarComando(char *com, char *atributos) {
 		}
 
 		if (bool != 1) {
-			//	montarP();
-			//	mostrarMontadas();
+			montarP();
+			mostrarMontadas();
 		}
 
 	} else if (strcasecmp(com, "umount") == 0 || strcasecmp(com, "UMOUNT") == 0
@@ -287,35 +289,35 @@ void verificarComando(char *com, char *atributos) {
 			cont++;
 		}
 		int i;
-		/*
-		 for (i = 1; i < cont - 1; i++) {
-		 if (i == 1) {
-		 atributoDisco(com1);
-		 desmontar(com1);
-		 } else if (i == 2) {
-		 atributoDisco(com2);
-		 desmontar(com2);
-		 } else if (i == 3) {
-		 atributoDisco(com3);
-		 desmontar(com3);
-		 } else if (i == 4) {
-		 atributoDisco(com4);
-		 desmontar(com4);
-		 } else if (i == 5) {
-		 atributoDisco(com5);
-		 desmontar(com5);
-		 } else if (i == 6) {
-		 atributoDisco(com6);
-		 desmontar(com6);
-		 } else if (i == 7) {
-		 atributoDisco(com7);
-		 desmontar(com7);
-		 } else if (i == 8) {
-		 atributoDisco(com8);
-		 desmontar(com8);
-		 }
-		 }
-		 */
+
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+				desmontar(com1);
+			} else if (i == 2) {
+				atributoDisco(com2);
+				desmontar(com2);
+			} else if (i == 3) {
+				atributoDisco(com3);
+				desmontar(com3);
+			} else if (i == 4) {
+				atributoDisco(com4);
+				desmontar(com4);
+			} else if (i == 5) {
+				atributoDisco(com5);
+				desmontar(com5);
+			} else if (i == 6) {
+				atributoDisco(com6);
+				desmontar(com6);
+			} else if (i == 7) {
+				atributoDisco(com7);
+				desmontar(com7);
+			} else if (i == 8) {
+				atributoDisco(com8);
+				desmontar(com8);
+			}
+		}
+
 	} else if (strcasecmp(com, "REP") == 0 || strcasecmp(com, "rep") == 0) {
 		//      printf("rep\n");
 		char atr[200];
@@ -364,7 +366,7 @@ void verificarComando(char *com, char *atributos) {
 		//generarReporte();
 
 	} else if (strcasecmp(com, "exec") == 0 || strcasecmp(com, "EXEC") == 0) {
-		// printf("exec\n");
+		//printf("exec\n");
 		char atr[200];
 		strcpy(atr, atributos);
 		int j;
@@ -395,7 +397,7 @@ void verificarComando(char *com, char *atributos) {
 				atributoDisco(com1);
 			}
 		}
-		//	script();
+		script();
 
 	} else if (strcasecmp(com, "df") == 0) {
 		//   printf("disk free\n");
@@ -1013,7 +1015,7 @@ void verificarComando(char *com, char *atributos) {
 		}
 		//imprimirDatos();
 		//	 printf("que ");
-	//	encontrar();
+		//	encontrar();
 
 	}/* else if (strcasecmp(com, "chown") == 0) {
 	 //    printf("Cambiar propietario\n");

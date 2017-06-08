@@ -15,12 +15,10 @@
 #include <math.h>
 #include "estructuras.h"
 
-void mostrarMontadas();
-//int AgregarArch(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
 void atributoDisco(char* coman);
 void crearDisco();
-/*
- * int  crearArchivoBinario(char* size, char* path, char* nom);
+int  crearArchivoBinario(char* size, char* path, char* nom);
+int  copy_file(char* f_org,char* f_dest);
 int  multiploDeOcho(int tam);
 void imprimirDatos();
 void limpiarVariables();
@@ -43,7 +41,9 @@ void script();
 int  ejecutarScript(char *path);
 void atributoExec(char* coman);
 char *numeroMontar(int num);
-*/
+void mostrarMontadas();
+//int AgregarArch(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
+
 /////////////////////////////////////////////////////////////////////////////////////
 /**
 void espacioLibre();
@@ -114,7 +114,7 @@ int   moverArchivo(char* id, char* path, char* dest, char* iddest);
 //superbloque crearBloque();
 */
 int  boolExec;
-//mount montar[50];
+mount montar[50];
 
 
 #endif /* ACCIONES_H_ */
