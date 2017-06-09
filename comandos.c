@@ -209,8 +209,9 @@ void verificarComando(char *com, char *atributos) {
 
 			if (inst != NULL) {
 				if (strcmp(inst, "+") == 0) {
-					//mostrarMontadas();
+					mostrarMontadas();
 					bool = 1;
+					cont --;
 				} else {
 					switch (cont) {
 					case 1:
@@ -235,7 +236,7 @@ void verificarComando(char *com, char *atributos) {
 
 		if (bool != 1) {
 			montarP();
-			mostrarMontadas();
+		//	mostrarMontadas();
 		}
 
 	} else if (strcasecmp(com, "umount") == 0 || strcasecmp(com, "UMOUNT") == 0
@@ -538,7 +539,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		// imprimirDatos();
-		//formatear();
+		formatear();
 
 	} else if (strcasecmp(com, "chmod") == 0) {
 		//         printf("chmod\n");

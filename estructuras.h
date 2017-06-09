@@ -9,13 +9,31 @@
 #define ESTRUCTURAS_H_
 
 
+typedef struct ARCHIVO { //archivo //content
+	char name[12];
+	int inodo;
+} archivo;
+
+typedef struct APUNTADOR { //av
+	int point[16];
+} apunt;
+
+typedef struct DATOS { //bloque de archivos
+	char data[64];
+} datos;
+
+typedef struct CARPETA { //*detalle
+	archivo archivos[4]; //16  //contenido
+	int detalle; //Si ya no caben apunta a otro detalle
+} detalle;
+
+
 typedef struct INODO {
 	int noInodo;
 	int size;
 	//int noAsignados; //numero de bloques asignados
 	int bloques[15];
 	//int indirecto; //apuntador indirecto por si ocupa mas de 4
-
 	//int contador;
 	int uid;
 	int gid;
@@ -113,6 +131,7 @@ typedef struct MBR { //Master Boot Record -> Registro de arranque principal
 	time_t fecha;
 	int signature;
 	particion part[4];
+	char* nameCopy;
 } mbr;
 
 #endif /* ESTRUCTURAS_H_ */
