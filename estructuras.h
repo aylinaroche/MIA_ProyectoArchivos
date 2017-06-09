@@ -8,15 +8,17 @@
 #ifndef ESTRUCTURAS_H_
 #define ESTRUCTURAS_H_
 
-
 typedef struct ARCHIVO { //archivo //content
 	char name[12];
 	int inodo;
 } archivo;
 
 typedef struct APUNTADOR { //av
-	int point[16];
-} apunt;
+	char name[16]; //point
+	int subDirectorios[6];
+	int directorio;
+	int apuntadorAVD;
+} avd;
 
 typedef struct DATOS { //bloque de archivos
 	char data[64];
@@ -26,7 +28,6 @@ typedef struct CARPETA { //*detalle
 	archivo archivos[4]; //16  //contenido
 	int detalle; //Si ya no caben apunta a otro detalle
 } detalle;
-
 
 typedef struct INODO {
 	int noInodo;
@@ -43,7 +44,6 @@ typedef struct INODO {
 	char type;
 } inodo;
 
-
 typedef struct JOURNAL {
 	int operacion;
 	int tipo; //0 archivo / 1 directorio
@@ -55,11 +55,19 @@ typedef struct JOURNAL {
 	char permisos[50];
 } journal;
 
+typedef struct DETALLE_SP { //Cola para realizar el mount
+	int arbolVirtualCount;//
+	int detalleDirectorioCount;
+	int apuntadorBitArbolDirectorio;//
+	int apuntadorAVD;//********
+	int apuntadorBitDetalleDirectorio; //
+	int apuntadorDetalleDirectorio;//
+	int apuntadorBitmapInodo; //
+	int apuntadorLog;//
+} detalleSB;
+
 
 typedef struct SUPERBLOQUE {
-	//char* nombre;
-	//int arbolVirtualCount;//
-	//int detalleDirectorioCount;
 	int inodosCount; //
 	int bloquesCount; //
 	//int freeArbolCount;
@@ -69,27 +77,23 @@ typedef struct SUPERBLOQUE {
 	time_t FechaMontado; //
 	time_t FechaDesmontado; //
 	int mountCount; //
-	//int apuntadorBitArbolDirectorio;//
-	//int apuntadorAVD;//
-	//int apuntadorBitDetalleDirectorio; //
-	//int apuntadorDetalleDirectorio;//
-	int apuntadorBitTablaInodo;//
-	int apuntadorTablaInodo;//
-	int apuntadorBitBloques;//
-	int apuntadorBloques;//
-	//int apuntadorLog;//
+	int apuntadorBitTablaInodo;	//
+	int apuntadorTablaInodo;	//
+	int apuntadorBitBloques;	//
+	int apuntadorBloques;	//
 	//int arbolDirectorioSize;
 	//int detalleDirectorioSize;
 	int inodoSize; //
 	int bloqueSize; //
 	//int firstFreeBitArbol;
 	//int firstFreeBitDetalleDirectorio;
-	int firstFreeBitTablaInodo;//
-	int firstFreeBitBloque;//
+	int firstFreeBitTablaInodo;	//
+	int firstFreeBitBloque;	//
 	int magic; //
 	//int apuntadorCopia;//
-	//int apuntadorBitmapInodo; //
+	detalleSB s;
 } superbloque;
+
 
 
 typedef struct MONTAR { //Cola para realizar el mount
@@ -102,7 +106,6 @@ typedef struct MONTAR { //Cola para realizar el mount
 	int uso;
 } mount;
 
-
 typedef struct EBR { //Cambiar
 	char status;
 	char fit;
@@ -112,7 +115,6 @@ typedef struct EBR { //Cambiar
 	int next; //Byte en el que esta el sigueinte ebr -1 si no hay
 	char name[16];
 } ebr;
-
 
 typedef struct PARTICION {
 	char status; //1 activa, 0
@@ -124,7 +126,6 @@ typedef struct PARTICION {
 	char name[16];
 	ebr exten[20];
 } particion;
-
 
 typedef struct MBR { //Master Boot Record -> Registro de arranque principal
 	int size;

@@ -42,34 +42,16 @@ int  ejecutarScript(char *path);
 void atributoExec(char* coman);
 char *numeroMontar(int num);
 void mostrarMontadas();
-//int AgregarArch(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
+int AgregarArch(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
 
 /////////////////////////////////////////////////////////////////////////////////////
-/**
+
 void espacioLibre();
 int  verEspacioLibre(char* id, char* path,int K, int M, int H, int I);
 void espacioUsado();
 int  verEspacioUsado(char *id,char *path, char* n,int boolH);
 void formatear();
 int  formatearDisco(char* id, char* type, char* add, char* unit, char* fs);
-void login();
-int  loginUsuario(char* usuario, char* password,char* id);
-int  verificarLogin(char* atributos, char* usuario,char* password);
-void logout();
-void crearGrupo();
-int  crearGrupoDisco(char* id, char* usuario);
-void eliminarGrupo();
-int  eliminarGrupoDisco(char* id, char* usuario);
-int  eliminarG(char* atributos,char* usuario);
-char* cambiarEliminado(char* atributos);
-void crearUsuario();
-int  crearUsuarioDisco(char* id, char* usuario, char* password, char* grupo);
-int  verificarGrupo(char* grupo);
-int  verificar(char* atributos, char* grupo);
-void eliminarUsuario();
-int  eliminarUsuarioDisco(char* id, char* usuario);
-int  eliminarU(char* atributos, char* usuario);
-int  obtenerArchivoUsers(char* id);
 //////////////////////////////////////
 void crearArchivo();
 int  crearArchivoParticion(char* id,char* path,char* p,char* size,char* cont);
@@ -89,7 +71,7 @@ int  buscarArchivo(char* ruta,superbloque super,avd ap,char* path,char ajuste, i
 int  primerAjuste(int bloque,char* ruta, int inicio, int archivo);
 int  mejorAjuste(int bloque,char* ruta, int inicio, int archivo);
 int  peorAjuste(int bloque, char *aux4, int inicio, int archivo);
-
+///
 void  copiar();
 int   copiarArchivo(char* id, char* path,char* dest, char* iddest);
 int   copiarCarpeta(char* ruta,superbloque super,char* path,int posicion,char* dest,char* iddest);
@@ -111,8 +93,8 @@ int   crearDirectorioArchivo(char* id, char* path, char* p);
 void  editar();
 void  mover();
 int   moverArchivo(char* id, char* path, char* dest, char* iddest);
-//superbloque crearBloque();
-*/
+superbloque crearBloque();
+
 int  boolExec;
 mount montar[50];
 

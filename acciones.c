@@ -918,7 +918,7 @@ int crearParticion(char* path, char* name, char* size, char* unit, char* type,
 														- 1].size;
 								esp = 1;
 							}
-							j = 0;
+							//j = 0;
 							structDisco.part[i].exten[j].status = '1';
 							esp = 1;
 							break;
@@ -995,6 +995,8 @@ int agregarParticion(char* add, char* unit, char* path, char* name) {
 //VERIFICAR SI EL ESPACIO ES SUFICIENTE
 	if (esLogica > 0) {
 		if (bytes > 0) {
+			printf("j0 = %d\n", j);
+
 			if (j < 20) { //j depende de donde encontro el nombre
 				printf("j = %d\n", j);
 				if (structDisco.part[i].exten[j + 1].start != 0) { //Si no es la primer particion
@@ -1096,12 +1098,15 @@ int agregarParticion(char* add, char* unit, char* path, char* name) {
 		}
 	} else {
 		if (bytes > 0) {
-			if (i < 3) {
+			if (i < 3) { //Si no es la ultima particon
 				if (structDisco.part[i + 1].start != 0) {
 					int siguiente = structDisco.part[i].auxiliar
 							+ structDisco.part[i].start;
 					int anterior = structDisco.part[i + 1].start;
 					int resta = anterior - siguiente;
+
+					printf("sig = %d\n ant = %d\n resta = %d\n bytes = %d\n",
+							siguiente, anterior, resta, bytes);
 					if (resta < bytes) {
 						printf("No hay espacio disponible.\n");
 						return 0;
@@ -1134,7 +1139,7 @@ int agregarParticion(char* add, char* unit, char* path, char* name) {
 										- structDisco.part[i].size);
 					}
 				}
-			} else {
+			} else { //Si es la ultima particion
 				int k = 0;
 				int suma = 0;
 				for (k = 0; k < 4; k++) {
@@ -1661,27 +1666,18 @@ void formatear() {
 		} else {
 			setbuf(stdin, NULL);
 			fflush(NULL);
-			//crearArchivoParticion(id, "/home/users.txt", "si", "16384", NULL);
-			//		boolEditar=1;
-			fflush(NULL);
-			//	crearGrupoDisco(id,"root");
-			//crearUsuarioDisco(id,"root","201404368","root");
-			//crearArchivoParticion(id, "/home/users.txt", "si", "16384", "/home/aylin/users.txt");
-			//"/home/aylin/usuarios.txt"
 		}
 
 	}
 }
 
 int formatearDisco(char* id, char* type, char* add, char* unit, char* fs) {
-	//CREAR USUARIO
 
 	if (strcasecmp(type, "full") == 0 || strcasecmp(type, "fast") == 0) {
 	} else {
 		printf("ERROR: Tipo no existe.\n");
 		return 0;
 	}
-
 	char* ruta;
 	char* nombre;
 	int i = 0;
@@ -1712,15 +1708,15 @@ int formatearDisco(char* id, char* type, char* add, char* unit, char* fs) {
 	fseek(archivo, 0, SEEK_SET);
 	fread(&structDisco, sizeof(mbr), 1, archivo);
 
-	//VERIFICAR SI EL NOMBRE COINCIDE CON LA PARTICION
+//VERIFICAR SI EL NOMBRE COINCIDE CON LA PARTICION
 	int j = 0;
 	int existeLogica = 0;
 	for (i = 0; i < 4; i++) { //Primaria/extendida
-		//printf("COMPARAR Mkfs:: %s - %s\n", structDisco.part[i].name, nombre);
+		//printf("COMPARAR Mkfs:: %s - %s\n",structDisco.part[i].name,nombre);
 		if (strcasecmp(structDisco.part[i].name, nombre) == 0) {
 			break;
 		}
-		for (j = 0; j < 20; j++) { //logica
+		for (j = 0; j < 10; j++) { //journalica
 			if (strcasecmp(structDisco.part[i].exten[j].name, nombre) == 0) {
 				existeLogica = 1;
 				break;
@@ -1737,128 +1733,167 @@ int formatearDisco(char* id, char* type, char* add, char* unit, char* fs) {
 	}
 	//printf("N1:: %s\n",structDisco.part[i].name);
 
-	superbloque sb; // = crearBloque();
+	superbloque sb;
 	int pos = 0;
 	int n = 0;
 	int tam = 0;
-	if (existeLogica == 1) { //Si la particion es logica
+	if (existeLogica == 1) { //Si la particion es journalica
 		n = structDisco.part[i].exten[j].auxiliar - sizeof(superbloque);
 		int m = (1 + sizeof(journal) + 3 + sizeof(inodo) + 3 * sizeof(datos));
 		int nn = n / m;
-	//	tam = floor(nn);
 
+		tam = floor(nn);
 		printf("tam1== %d\n", tam);
 		pos = tam;
 		//sb.nombre = name;
+		sb.s.arbolVirtualCount = tam;
+		sb.s.detalleDirectorioCount = tam * 2;
 		sb.inodosCount = tam;
 		sb.bloquesCount = tam * 3;
+		//sb.s.freeArbolCount = tam - 1;
+		//sb.s.freeDetalleDirectorioCount = (tam * 2) - 1;
 		sb.freeBloquesCount = tam - 1;
 		sb.freeInodosCount = (tam * 3) - 10;
+		//sb.DateCreacion = time(0);
+		//sb.DateMontaje = time(0);
 		sb.mountCount = 0;
 		sb.magic = 201404368;  //0xEF53
 		sb.inodoSize = sizeof(inodo);
 		sb.bloqueSize = sizeof(datos);
-		//sb.apuntadorBitTablaInodo = sb.apuntadorDetalleDirectorio				+ sizeof(detalle);
+		//sb.s.arbolDirectorioSize = sizeof(avd);
+		//sb.s.detalleDirectorioSize = sizeof(detalle);
+		sb.s.apuntadorLog = sb.apuntadorBloques + sizeof(datos);
+		sb.s.apuntadorBitArbolDirectorio = structDisco.part[i].exten[j].start
+				+ sizeof(superbloque);
+		sb.s.apuntadorAVD = structDisco.part[i].exten[j].start
+				+ sizeof(superbloque) + tam;
+		sb.s.apuntadorBitDetalleDirectorio = structDisco.part[i].exten[j].start
+				+ sizeof(superbloque) + tam + sizeof(avd);
+		sb.s.apuntadorDetalleDirectorio = sb.s.apuntadorBitDetalleDirectorio
+				+ tam;
+		sb.apuntadorBitTablaInodo = sb.s.apuntadorDetalleDirectorio
+				+ sizeof(detalle);
 		sb.apuntadorTablaInodo = sb.apuntadorBitTablaInodo + tam;
+		sb.s.apuntadorBitmapInodo = sb.apuntadorTablaInodo + sizeof(inodo);
+		//sb.s.apuntadorCopia = sb.s.apuntadorLog + sizeof(journal);
+		//sb.s.firstFreeBitArbol = 1;
+		//sb.s.firstFreeBitDetalleDirectorio = 1;
 		sb.firstFreeBitTablaInodo = 1;
 		sb.firstFreeBitBloque = 1;
 
 		fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
 		fwrite(&sb, sizeof(superbloque), 1, archivo);
-
 		//fseek(archivo, sb.apuntadorCopia, SEEK_SET);
-		fwrite(&sb, sizeof(superbloque), 1, archivo);
+		//fwrite(&sb, sizeof(superbloque), 1, archivo);
 
 	} else {
-		printf("Entro aqui\n");
-		n = structDisco.part[i].exten[j].auxiliar - sizeof(superbloque);
+		n = structDisco.part[i].auxiliar - sizeof(superbloque);
 		int m = (1 + sizeof(journal) + 3 + sizeof(inodo) + 3 * sizeof(datos));
 		int nn = n / m;
-		//tam = floor(nn);
+		tam = floor(nn);
 		printf("tam1== %d\n", tam);
+
 		pos = tam;
 		//sb.nombre = name;
+		sb.s.arbolVirtualCount = tam;
+		sb.s.detalleDirectorioCount = tam * 2;
 		sb.inodosCount = tam;
 		sb.bloquesCount = tam * 3;
+		//sb.s.freeArbolCount = tam - 1;
+		//sb.s.freeDetalleDirectorioCount = (tam * 2) - 1;
 		sb.freeBloquesCount = tam - 1;
 		sb.freeInodosCount = (tam * 3) - 10;
+		//sb.DateCreacion = time(0);
+		//sb.DateMontaje = time(0);
 		sb.mountCount = 0;
 		sb.magic = 201404368;  //0xEF53
 		sb.inodoSize = sizeof(inodo);
 		sb.bloqueSize = sizeof(datos);
-		//sb.apuntadorBitTablaInodo = sb.apuntadorDetalleDirectorio
-			//	+ sizeof(detalle);
+		//sb.s.arbolDirectorioSize = sizeof(avd);
+		//sb.s.detalleDirectorioSize = sizeof(detalle);
+		sb.s.apuntadorLog = sb.apuntadorBloques + sizeof(datos);
+		sb.s.apuntadorBitArbolDirectorio = structDisco.part[i].start
+				+ sizeof(superbloque);
+		sb.s.apuntadorAVD = structDisco.part[i].start + sizeof(superbloque)
+				+ tam;
+		sb.s.apuntadorBitDetalleDirectorio = structDisco.part[i].start
+				+ sizeof(superbloque) + tam + sizeof(avd);
+		sb.s.apuntadorDetalleDirectorio = sb.s.apuntadorBitDetalleDirectorio
+				+ tam;
+		sb.apuntadorBitTablaInodo = sb.s.apuntadorDetalleDirectorio
+				+ sizeof(detalle);
 		sb.apuntadorTablaInodo = sb.apuntadorBitTablaInodo + tam;
+		sb.s.apuntadorBitmapInodo = sb.apuntadorTablaInodo + sizeof(inodo);
+		//sb.s.apuntadorCopia = sb.s.apuntadorLog + sizeof(journal);
+		//sb.s.firstFreeBitArbol = 2;
+		//sb.s.firstFreeBitDetalleDirectorio = 1;
 		sb.firstFreeBitTablaInodo = 1;
 		sb.firstFreeBitBloque = 1;
 		fseek(archivo, structDisco.part[i].start, SEEK_SET);
 		fwrite(&sb, sizeof(superbloque), 1, archivo);
 		//fseek(archivo, sb.apuntadorCopia, SEEK_SET);
-		fwrite(&sb, sizeof(superbloque), 1, archivo);
+		//fwrite(&sb, sizeof(superbloque), 1, archivo);
 
 	}
 	printf("-> Se ha dado formato a la particion correctamente.\n");
 
-	char bit = '0';
-	char bitmap = '1';
+	char bitm = '0';
+	char bitm1 = '1';
+	fseek(archivo, sb.s.apuntadorBitArbolDirectorio, SEEK_SET);
+	fwrite(&bitm1, 1, 1, archivo);
 	int io = 0;
-	/*fseek(archivo, sb.apuntadorBitArbolDirectorio, SEEK_SET);
-	fwrite(&bitmap, 1, 1, archivo);
-
 	for (io = 0; io < (pos) - 1; io++) {
-		fwrite(&bit, 1, 1, archivo);
+		fwrite(&bitm, 1, 1, archivo);
 	}
 
-	fseek(archivo, sb.apuntadorBitDetalleDirectorio, SEEK_SET);		//carpeta
+	fseek(archivo, sb.s.apuntadorBitDetalleDirectorio, SEEK_SET);
 	for (io = 0; io < (pos); io++) {
-		fwrite(&bit, 1, 1, archivo);
+		fwrite(&bitm, 1, 1, archivo);
 	}
-*/
+
 	fseek(archivo, sb.apuntadorBitTablaInodo, SEEK_SET);
 	for (io = 0; io < (pos); io++) {
-		fwrite(&bit, 1, 1, archivo);
-	}
-/*
-	fseek(archivo, sb.apuntadorBitmapInodo, SEEK_SET);
-	for (io = 0; io < (pos); io++) {
-		fwrite(&bit, 1, 1, archivo);
+		fwrite(&bitm, 1, 1, archivo);
 	}
 
-avd insertar;
+	fseek(archivo, sb.s.apuntadorBitmapInodo, SEEK_SET);
+	for (io = 0; io < (pos); io++) {
+		fwrite(&bitm, 1, 1, archivo);
+	}
+
+	avd insertar;
 	insertar.apuntadorAVD = -1;
-	insertar.fechaCreacion = time(0);
 	insertar.directorio = 0;
 	strcpy(insertar.name, "/");
 	int ip = 0;
 	for (ip = 0; ip < 4; ip++) {
 		insertar.subDirectorios[ip] = 0;
 	}
-	fseek(archivo, sb.apuntadorAVD, SEEK_SET);
+	fseek(archivo, sb.s.apuntadorAVD, SEEK_SET);
 	fwrite(&insertar, sizeof(avd), 1, archivo);
-*/
-	//CAMBIOS EN EL JOURNALING
+
+//CAMBIOS EN EL JOURNALING
 	journal bitacora;
 
 	bitacora.operacion = 1;
 	bitacora.tipo = 0;
 	bitacora.fecha = time(0);
-	//if(usrLogin!=NULL){
-	//	strcpy(bitacora.usuario,usrLogin);
-	//}
+	if (usrLogin != NULL) {
+		//	strcpy(bitacora.usuario,usrLogin);
+	}
 	//strcpy(bitacora.permiso,"664");
 	strcpy(bitacora.nombre, "Formatear");
 	strcpy(bitacora.contenido, "Formatear");
-
-	//fseek(archivo, sb.apuntadorLog, SEEK_SET); //**
-	//fwrite(&bitacora, sizeof(journal), 1, archivo);
+	fseek(archivo, sb.s.apuntadorLog, SEEK_SET); //**
+	fwrite(&bitacora, sizeof(journal), 1, archivo);
 
 	fclose(archivo);
-	//printf("MM= %d\n", sb.magic);
-	//strcpy(structDisco.part[i].name, montar[i].name);
-	//metodoPrueba();
+	//printf("N4:: %s\n",structDisco.part[i].name);
+	//printf("M5:: %s\n",montar[i].name);
+	//printf("MM= %d\n",sb.magic);
+	strcpy(structDisco.part[i].name, montar[i].name);
 	return 1;
 }
-
 
 void crearArchivo() {
 	if (id == NULL || path == NULL) {
@@ -1909,13 +1944,13 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 	int j = 0;
 	int existeLogica = 0;
 	for (i = 0; i < 4; i++) { //Primaria/extendida
-		//printf("Comparar= *%s* - *%s*\n", montar[i].name, nombre);
+		printf("Comparar= *%s* - *%s*\n", montar[i].name, nombre);
 		if (strcasecmp(structDisco.part[i].name, nombre) == 0
 				|| strcmp(nombre, structDisco.part[i].name) == 0) {
 			//	printf("eureka\n");
 			break;
 		}
-		for (j = 0; j < 10; j++) { //logica
+		for (j = 0; j < 20; j++) { //logica
 			if (strcasecmp(structDisco.part[i].exten[j].name, nombre) == 0) {
 				existeLogica = 1;
 				break;
@@ -1971,9 +2006,9 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 	printf("MAGIC = %d\n", sb.magic);
 	sb.magic = 201404368;
 	if (sb.magic == 201404368) {
-		//fseek(archivo, sb.apuntadorAVD, SEEK_SET);
-		//avd ap;
-		//fread(&ap, sizeof(ap), 1, archivo);
+		fseek(archivo, sb.s.apuntadorAVD, SEEK_SET);
+		avd ap;
+		fread(&ap, sizeof(ap), 1, archivo);
 
 		char crear[100];
 		char verificar[100];
@@ -2014,17 +2049,17 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 		correcto = 1; //**
 		printf("crearCarpeta ="); //XXX
 		setbuf(stdin, NULL);
-		//informacion = crearCarpeta(ruta, sb, ap, rutaC, p, ajuste, posicion,
-			//	sb.apuntadorAVD);
-		printf("%d\n",correcto);
+		informacion = crearCarpeta(ruta, sb, ap, rutaC, p, ajuste, posicion,
+				sb.s.apuntadorAVD);
+		printf("%d\n", correcto);
 		if (correcto > 0) {
 			rutaC = strtok(verificar2, "/");
 			//posicion = inicio & apuntador =atras
 			printf("buscarArchivo\n"); //XXX
 			setbuf(stdin, NULL);
 			fflush(NULL);
-			//datos = buscarArchivo(ruta, sb, ap, rutaC, ajuste, posicion,
-				//	sb.apuntadorAVD);
+			datos = buscarArchivo(ruta, sb, ap, rutaC, ajuste, posicion,
+					sb.s.apuntadorAVD);
 
 			if (datos > 0) {
 				rutaC = strtok(crear, "/");
@@ -2056,12 +2091,13 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 				fflush(NULL);
 				//		printf("archivoCont ==  %s*\n",leer);
 				char contenido[100];
-				printf("ruta= %s\n",ruta);
+				printf("ruta= %s\n", ruta);
 				if (archivoCont != NULL || archivoCont != 0x0) {
-				//	setbuf(stdin, NULL);
+					//	setbuf(stdin, NULL);
 					//fflush(NULL);
 					printf("AgregarArch\n");
-					///agregarContenido(datos, sb, ruta, rutaC, ajuste, leer,tamanio);
+					agregarContenido(datos, sb, ruta, rutaC, ajuste, leer,
+							tamanio);
 					//cambiarPermiso(datos,sb,ruta, rutaC, "664","0");
 					fflush(NULL);
 					//printf("Contenido = %s\n",contenido);
@@ -2073,17 +2109,17 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 						strcat(contenido, size);
 					}
 
-				printf("-> Se ha creado el archivo correctamente.\n");
+					printf("-> Se ha creado el archivo correctamente.\n");
 
-
-				//bitacora(sb.apuntadorLog, 1, path, contenido, sb, ruta);
+					//bitacora(sb.apuntadorLog, 1, path, contenido, sb, ruta);
 				} else {
 					//FILE* archivoCont;
-						//archivoCont = fopen("/home/aylin/vacio.txt", "r");
+					//archivoCont = fopen("/home/aylin/vacio.txt", "r");
 
 					printf("else\n");
 					rutaC = "/home/aylin/vacio.txt";
-					//agregarContenido(datos, sb, ruta, rutaC, ajuste, leer,tamanio);
+					agregarContenido(datos, sb, ruta, rutaC, ajuste, leer,
+							tamanio);
 
 					//contenido[0]= 'n';
 				}
@@ -2098,7 +2134,7 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 	}
 	return 1;
 }
-/*
+
 int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 		char ajuste, char* contenido, int size) {
 
@@ -2110,7 +2146,7 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 	fflush(NULL);
 	int i = 0, k = 0;
 	int j = 0;
-	for (i = 0; i < 5; i++) { //Maneja 5 inodos
+	for (i = 0; i < 4; i++) { //Maneja 5 inodos
 
 		if (carp.archivos[i].inodo > 1) {
 			if (strcasecmp(carp.archivos[i].name, name) == 0) {
@@ -2133,8 +2169,8 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			setbuf(stdin, NULL);
 			fflush(NULL);
 			printf("agregar1\n");
-			return agregarContenido(carp.detalle, super, ruta, name, ajuste, contenido,
-					size);
+			return agregarContenido(carp.detalle, super, ruta, name, ajuste,
+					contenido, size);
 		} else {
 			printf("else1\n");
 			detalle carp;
@@ -2147,32 +2183,32 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			fclose(archivo);
 			setbuf(stdin, NULL);
 			if (ajuste == 'w') {
-				posicion = peorAjuste(super.arbolVirtualCount, ruta,
-						super.apuntadorBitDetalleDirectorio, 1);
+				posicion = peorAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitDetalleDirectorio, 1);
 			} else if (ajuste == 'f') {
-				posicion = primerAjuste(super.arbolVirtualCount, ruta,
-						super.apuntadorBitDetalleDirectorio, 1);
+				posicion = primerAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitDetalleDirectorio, 1);
 			} else {
-				posicion = mejorAjuste(super.arbolVirtualCount, ruta,
-						super.apuntadorBitDetalleDirectorio, 1);
+				posicion = mejorAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitDetalleDirectorio, 1);
 			}
 			FILE* disco;
 			disco = fopen(ruta, "rb+");
 
-			carp.detalle = super.apuntadorDetalleDirectorio
+			carp.detalle = super.s.apuntadorDetalleDirectorio
 					+ 100 * posicion * sizeof(detalle);
 			fseek(disco, posicion, SEEK_SET);
 			fwrite(&carp, sizeof(detalle), 1, disco);
 
 			fseek(disco,
-					super.apuntadorDetalleDirectorio
+					super.s.apuntadorDetalleDirectorio
 							+ 100 * posicion * sizeof(detalle), SEEK_SET);
 			fwrite(&carp, sizeof(detalle), 1, disco);
 			fclose(disco);
 			setbuf(stdin, NULL);
 			printf("agregar2\n");
-			return agregarContenido(carp.detalle, super, ruta, name, ajuste, contenido,
-					size);
+			return agregarContenido(carp.detalle, super, ruta, name, ajuste,
+					contenido, size);
 			fflush(NULL);
 		}
 	} else { //Se crean los inodos
@@ -2185,13 +2221,13 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 
 		fclose(archivo);
 		if (ajuste == 'w') {
-			pos = peorAjuste(super.arbolVirtualCount, ruta,
+			pos = peorAjuste(super.s.arbolVirtualCount, ruta,
 					super.apuntadorBitTablaInodo, 1);
 		} else if (ajuste == 'f') {
-			pos = primerAjuste(super.arbolVirtualCount, ruta,
+			pos = primerAjuste(super.s.arbolVirtualCount, ruta,
 					super.apuntadorBitTablaInodo, 1);
 		} else {
-			pos = mejorAjuste(super.arbolVirtualCount, ruta,
+			pos = mejorAjuste(super.s.arbolVirtualCount, ruta,
 					super.apuntadorBitTablaInodo, 1);
 		}
 		FILE* disco;
@@ -2203,7 +2239,7 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 		fclose(disco);
 
 		inodo ino;
-		ino.noAsignados = pos;
+		//ino.noAsignados = pos;
 		ino.size = size;
 		int aux = size / 25;
 
@@ -2222,19 +2258,19 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			if (size % 25 > 0) {
 				ino.noInodo++;
 			}
-			printf("NoInodo = %d\n",ino.noInodo);
-			ino.indirecto = 0;
+			printf("NoInodo = %d\n", ino.noInodo);
+			//ino.indirecto = 0;
 			setbuf(stdin, NULL);
 			for (l = 0; l < ino.noInodo; l++) {
 				if (ajuste == 'w') {
-					pos2 = peorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos2 = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				} else if (ajuste == 'f') {
-					pos2 = primerAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos2 = primerAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				} else {
-					pos2 = mejorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos2 = mejorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				}
 				FILE* disco;
 				disco = fopen(ruta, "rb+");
@@ -2254,17 +2290,17 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			printf("Si es el ultimo inodo\n");
 			ino.noInodo = 4;
 			setbuf(stdin, NULL);
-			//p//rintf("1 = %d\n", super.apuntadorBitmapInodo);
+			//p//rintf("1 = %d\n", super.s.apuntadorBitmapInodo);
 			for (l = 0; l < 4; l++) {
 				if (ajuste == 'w') {
-					pos2 = peorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos2 = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				} else if (ajuste == 'f') {
-					pos2 = primerAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitDetalleDirectorio, 1);
+					pos2 = primerAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitDetalleDirectorio, 1);
 				} else {
-					pos2 = mejorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos2 = mejorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				}
 				FILE* disco;
 				disco = fopen(ruta, "rb+");
@@ -2283,20 +2319,20 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			int pos3 = 0;
 			//setbuf(stdin, NULL);
 			if (ajuste == 'w') {
-				pos3 = peorAjuste(super.arbolVirtualCount, ruta,
+				pos3 = peorAjuste(super.s.arbolVirtualCount, ruta,
 						super.apuntadorBitTablaInodo, 1);
 			} else if (ajuste == 'f') {
-				pos3 = primerAjuste(super.arbolVirtualCount, ruta,
+				pos3 = primerAjuste(super.s.arbolVirtualCount, ruta,
 						super.apuntadorBitTablaInodo, 1);
 			} else {
-				pos3 = mejorAjuste(super.arbolVirtualCount, ruta,
+				pos3 = mejorAjuste(super.s.arbolVirtualCount, ruta,
 						super.apuntadorBitTablaInodo, 1);
 			}
 			printf("3\n");
 			inodo ino2;
-			ino2.noAsignados=pos3;
+			//ino2.noAsignados=pos3;
 			ino2.size = size;
-			ino2.indirecto = 0;
+			//ino2.indirecto = 0;
 			ino2.noInodo = (size - 100) / 25;
 			if ((size - 100) % 25 > 0) {
 				ino2.noInodo++;
@@ -2308,14 +2344,14 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			setbuf(stdin, NULL);
 			for (l = 0; l < ino2.noInodo; l++) {
 				if (ajuste == 'w') {
-					pos4 = peorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos4 = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				} else if (ajuste == 'f') {
-					pos4 = primerAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos4 = primerAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				} else {
-					pos4 = mejorAjuste(super.arbolVirtualCount, ruta,
-							super.apuntadorBitmapInodo, 1);
+					pos4 = mejorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitmapInodo, 1);
 				}
 				printf("4\n");
 				FILE* disco;
@@ -2335,10 +2371,10 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 			}
 
 			disco = fopen(ruta, "rb+");
-			ino.indirecto = super.apuntadorDetalleDirectorio
-					+ 100 * pos3 * sizeof(inodo);
+			//ino.indirecto = super.s.apuntadorDetalleDirectorio
+			//	+ 100 * pos3 * sizeof(inodo);
 			fseek(disco,
-					super.apuntadorDetalleDirectorio
+					super.s.apuntadorDetalleDirectorio
 							+ 100 * pos3 * sizeof(inodo), SEEK_SET);
 			fwrite(&ino2, sizeof(inodo), 1, disco);
 			fclose(disco);
@@ -2356,7 +2392,477 @@ int agregarContenido(int posicion, superbloque super, char* ruta, char* name,
 	}
 }
 
-*/
+int AgregarArch(int posicion, superbloque super, char* aux4, char* name,
+		char ajuste, char* contenido, int size) {
+	FILE* disco;
+	disco = fopen(aux4, "rb+");
+	detalle con;
+	fseek(disco, posicion, SEEK_SET);
+	fread(&con, sizeof(detalle), 1, disco);
+	int i = 0;
+	int k = 0;
+	int w = 0;
+	for (i = 0; i < 5; i++) {
+
+		if (con.archivos[i].inodo > 1) {
+			if (strcasecmp(con.archivos[i].name, name) == 0) {
+				printf("Ya existe ese nombre");
+				return 0;
+				break;
+			}
+			k++;
+		} else {
+			w = i;
+		}
+	}
+	if (k > 4) {
+		if (con.detalle > 0) {
+			fclose(disco);
+			return AgregarArch(con.detalle, super, aux4, name, ajuste,
+					contenido, size);
+		} else {
+			detalle conx;
+			conx.detalle = 0;
+			int uy = 0;
+			for (uy = 0; uy < 5; uy++) {
+				conx.archivos[uy].inodo = -1;
+			}
+			int pos = 0;
+			fclose(disco);
+			if (ajuste == 'w') {
+				pos = peorAjuste(super.s.arbolVirtualCount, aux4,
+						super.s.apuntadorBitDetalleDirectorio, 1);
+			} else if (ajuste == 'f') {
+				pos = primerAjuste(super.s.arbolVirtualCount, aux4,
+						super.s.apuntadorBitDetalleDirectorio, 1);
+			} else {
+				pos = mejorAjuste(super.s.arbolVirtualCount, aux4,
+						super.s.apuntadorBitDetalleDirectorio, 1);
+			}
+			FILE* disco;
+			disco = fopen(aux4, "rb+");
+
+			con.detalle = super.s.apuntadorDetalleDirectorio
+					+ 100 * pos * sizeof(detalle);
+			fseek(disco, posicion, SEEK_SET);
+			fwrite(&con, sizeof(detalle), 1, disco);
+
+			fseek(disco,
+					super.s.apuntadorDetalleDirectorio
+							+ 100 * pos * sizeof(detalle), SEEK_SET);
+			fwrite(&conx, sizeof(detalle), 1, disco);
+			fclose(disco);
+			return AgregarArch(con.detalle, super, aux4, name, ajuste,
+					contenido, size);
+		}
+	} else {
+		//aqui crear inodos y esas cosas;
+		//con.archivos[w].fechaCreacion = time(0);
+		//con.archivos[w].fechaModifica = time(0);
+		strcpy(con.archivos[w].name, name);
+
+		int pos = 0;
+		fclose(disco);
+		if (ajuste == 'w') {
+			pos = peorAjuste(super.s.arbolVirtualCount, aux4,
+					super.apuntadorBitTablaInodo, 1);
+		} else if (ajuste == 'f') {
+			pos = primerAjuste(super.s.arbolVirtualCount, aux4,
+					super.apuntadorBitTablaInodo, 1);
+		} else {
+			pos = mejorAjuste(super.s.arbolVirtualCount, aux4,
+					super.apuntadorBitTablaInodo, 1);
+		}
+		FILE* disco;
+		disco = fopen(aux4, "rb+");
+
+		con.archivos[w].inodo = super.apuntadorTablaInodo
+				+ 100 * pos * sizeof(inodo);
+		fseek(disco, posicion, SEEK_SET);
+		fwrite(&con, sizeof(detalle), 1, disco);
+		fclose(disco);
+		inodo conx;
+//conx.noAsignados=pos;
+		conx.size = size;
+		int axulii = size / 25;
+		if (size % 25) {
+			axulii++;
+		}
+		datos conq;
+		char q[200];
+		strcpy(q, contenido);
+		int yu, qw = 0;
+		int pos2 = 0;
+		if (axulii < 5) {
+			conx.noInodo = size / 25;
+			if (size % 25 > 0) {
+				conx.noInodo++;
+			}
+			//conx.indirecto = 0;
+			for (yu = 0; yu < conx.noInodo; yu++) {
+				if (ajuste == 'w') {
+					pos2 = peorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else if (ajuste == 'f') {
+					pos2 = primerAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else {
+					pos2 = mejorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				}
+				FILE* disco;
+				disco = fopen(aux4, "rb+");
+				for (qw = 0; qw < 25; qw++) {
+					conq.data[qw] = q[yu * 25 + qw];
+				}
+				conx.bloques[yu] = super.apuntadorBloques
+						+ 100 * pos2 * sizeof(datos);
+				fseek(disco,
+						super.apuntadorBloques + 100 * pos2 * sizeof(datos),
+						SEEK_SET);
+				fwrite(&conq, sizeof(datos), 1, disco);
+				fclose(disco);
+			}
+		} else {
+			conx.noInodo = 4;
+			for (yu = 0; yu < 4; yu++) {
+				if (ajuste == 'w') {
+					pos2 = peorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else if (ajuste == 'f') {
+					pos2 = primerAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else {
+					pos2 = mejorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				}
+				FILE* disco;
+				disco = fopen(aux4, "rb+");
+				for (qw = 0; qw < 25; qw++) {
+					conq.data[qw] = q[yu * 25 + qw];
+				}
+				conx.bloques[yu] = super.apuntadorBloques
+						+ 100 * pos2 * sizeof(datos);
+				fseek(disco,
+						super.apuntadorBloques + 100 * pos2 * sizeof(datos),
+						SEEK_SET);
+				fwrite(&conq, sizeof(datos), 1, disco);
+				fclose(disco);
+			}
+			int pos3 = 0;
+			if (ajuste == 'w') {
+				pos3 = peorAjuste(super.s.arbolVirtualCount, aux4,
+						super.apuntadorBitTablaInodo, 1);
+			} else if (ajuste == 'f') {
+				pos3 = primerAjuste(super.s.arbolVirtualCount, aux4,
+						super.apuntadorBitTablaInodo, 1);
+			} else {
+				pos3 = mejorAjuste(super.s.arbolVirtualCount, aux4,
+						super.apuntadorBitTablaInodo, 1);
+			}
+			inodo conxw;
+			//	conxw.noAsignados = pos3;
+			conxw.size = size;
+			//conxw.indirecto = 0;
+			conxw.noInodo = (size - 100) / 25;
+			if ((size - 100) % 25 > 0) {
+				conxw.noInodo++;
+			}
+			if (conxw.noInodo > 4) {
+				conxw.noInodo = 4;
+			}
+			int pos4 = 0;
+			for (yu = 0; yu < conxw.noInodo; yu++) {
+				if (ajuste == 'w') {
+					pos4 = peorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else if (ajuste == 'f') {
+					pos4 = primerAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				} else {
+					pos4 = mejorAjuste(super.s.arbolVirtualCount, aux4,
+							super.s.apuntadorBitmapInodo, 1);
+				}
+				FILE* disco;
+				disco = fopen(aux4, "rb+");
+				int qw = 0;
+				for (qw = 0; qw < 25; qw++) {
+					conq.data[qw] = q[yu * 25 + qw + 100];
+				}
+				conxw.bloques[yu] = super.apuntadorBloques
+						+ 100 * pos4 * sizeof(datos);
+				fseek(disco,
+						super.apuntadorBloques + 100 * pos4 * sizeof(datos),
+						SEEK_SET);
+				fwrite(&conq, sizeof(datos), 1, disco);
+				fclose(disco);
+			}
+
+			disco = fopen(aux4, "rb+");
+			//	conx.indirecto = super.s.apuntadorDetalleDirectorio
+			//		+ 100 * pos3 * sizeof(inodo);
+			fseek(disco,
+					super.s.apuntadorDetalleDirectorio
+							+ 100 * pos3 * sizeof(inodo), SEEK_SET);
+			fwrite(&conxw, sizeof(inodo), 1, disco);
+			fclose(disco);
+		}
+
+		disco = fopen(aux4, "rb+");
+		fseek(disco, super.apuntadorTablaInodo + 100 * pos * sizeof(inodo),
+		SEEK_SET);
+		fwrite(&conx, sizeof(inodo), 1, disco);
+		fclose(disco);
+
+		printf("se creo archivo");
+	}
+
+}
+
+int crearCarpeta(char* ruta, superbloque super, avd apun, char* path, char* p,
+		char ajuste, int inicio, int atras) {
+//	printf("p == %s\n",p);
+	char* patito = path;
+
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	avd ap;
+//	int m = super.apuntador;
+	//printf("m= %d\n", m);
+	if (atras > 800000000) {
+		return 0;
+	}
+	fseek(archivo, atras, SEEK_SET);
+	fread(&apun, sizeof(avd), 1, archivo);
+	int i = 0, x = 0, w = 0, qw = 0;
+
+	for (i = 0; i < 4; i++) {
+		//	printf("sub carpeta =%d\n",apun.subDirectorios[i]);
+		if (apun.subDirectorios[i] > 0) {	//Si ya existe la carpeta
+			fseek(archivo, apun.subDirectorios[i], SEEK_SET);
+			fread(&ap, sizeof(ap), 1, archivo);
+			if (strcasecmp(ap.name, path) == 0) {
+				break;
+			}
+		} else if (x == 0) {
+			x = 1;
+			w = i;
+			qw++;
+		} else {
+			qw++;
+		}
+	}
+	//printf("i = %d\n",i);
+	if (i < 4) {
+		path = strtok(NULL, "/");
+		//	printf("path=%s\n", path);
+		if (path != NULL && path != 0x0) {
+			fclose(archivo);
+			crearCarpeta(ruta, super, ap, path, p, ajuste, inicio,
+					apun.subDirectorios[i]);
+		} else {
+			//	printf("NULO\n");
+//			correcto=0;
+			return 1;
+		}
+	} else if (i > 3 && x > 0) {
+		if (p != NULL) {
+			int pos = 0;
+			fclose(archivo);
+			if (ajuste == 'w') {
+				pos = peorAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitArbolDirectorio, 1);
+			} else if (ajuste == 'f') {
+				pos = primerAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitArbolDirectorio, 1);
+			} else {
+				pos = mejorAjuste(super.s.arbolVirtualCount, ruta,
+						super.s.apuntadorBitArbolDirectorio, 1);
+			}
+			FILE* archivo;
+			archivo = fopen(ruta, "rb+");
+			ap.apuntadorAVD = -1;
+			ap.directorio = 0;
+			//ap.fechaCreacion = time(0);
+			strcpy(ap.name, path);
+			int au = 0;
+			for (au = 0; au < 4; au++) {
+				ap.subDirectorios[au] = -1;
+			}
+
+			apun.subDirectorios[w] = super.s.apuntadorAVD
+					+ 100 * pos * sizeof(avd);
+			fseek(archivo, atras, SEEK_SET);
+			fwrite(&apun, sizeof(avd), 1, archivo);
+
+			fseek(archivo, super.s.apuntadorAVD + 100 * pos * sizeof(avd),
+			SEEK_SET);
+			fwrite(&ap, sizeof(avd), 1, archivo);
+			path = strtok(NULL, "/");
+			fclose(archivo);
+			if (path != NULL) {
+				//printf("hola\n");
+				crearCarpeta(ruta, super, apun, path, p, ajuste, inicio,
+						apun.subDirectorios[w]);
+			} else {
+				printf("-> Se creo la carpeta correctamente. %s\n", patito);
+				return 1;
+			}
+		} else {
+			correcto = 0;
+			printf("*ERROR: La ruta indicada no existe.\n");
+			return 0;
+		}
+	} else if (i > 3 && x < 1) {
+		//printf("apun == %d\n",apun.apuntadorAVD);
+
+		if (apun.apuntadorAVD < 0) {
+			if (p != NULL) {
+				int pos = 0;
+				fclose(archivo);
+				if (ajuste == 'w') {
+					pos = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitArbolDirectorio, 1);
+				} else if (ajuste == 'f') {
+					pos = primerAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitArbolDirectorio, 1);
+				} else {
+					pos = mejorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitArbolDirectorio, 1);
+				}
+				FILE* disco;
+				disco = fopen(ruta, "rb+");
+
+				ap.apuntadorAVD = -1;
+				ap.directorio = 0;
+				//ap.fechaCreacion = time(0);
+				strcpy(ap.name, apun.name);
+				int aux = 0;
+				for (aux = 0; aux < 6; aux++) {
+					ap.subDirectorios[aux] = -1;
+				}
+				apun.apuntadorAVD = super.s.apuntadorAVD
+						+ 100 * pos * sizeof(avd);
+
+				fseek(disco, atras, SEEK_SET);
+				fwrite(&apun, sizeof(avd), 1, disco);
+
+				fseek(disco, super.s.apuntadorAVD + 100 * pos * sizeof(avd),
+				SEEK_SET);
+				fwrite(&ap, sizeof(avd), 1, disco);
+
+				if (path != NULL) {
+					fclose(disco); //XXX
+					crearCarpeta(ruta, super, ap, path, p, ajuste, inicio,
+							apun.apuntadorAVD);
+				}
+			} else {
+				correcto = 0;
+				printf("/ERROR: La ruta indicada no existe.\n");
+				return 0;
+			}
+		} else {
+			fclose(archivo);
+			crearCarpeta(ruta, super, apun, path, p, ajuste, inicio,
+					apun.apuntadorAVD);
+		}
+	} else {
+		correcto = 0;
+		printf("ERROR: No se ha podido crear la carpeta.\n");
+		return 0;
+	}
+
+	return 1;
+
+}
+
+int buscarArchivo(char* ruta, superbloque super, avd ap, char* path,
+		char ajuste, int inicio, int atras) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	avd ap2;
+	//printf("apuntador = %d\n", super.apuntadorArbolDirectorio);
+	fseek(archivo, atras, SEEK_SET);
+	fread(&ap, sizeof(avd), 1, archivo);
+	int i = 0, x = 0, qw = 0;
+
+	for (i = 0; i < 6; i++) {
+		printf("sub = %d, ", ap.subDirectorios[i]);
+		if (ap.subDirectorios[i] > 0) {
+			fseek(archivo, ap.subDirectorios[i], SEEK_SET);
+			fread(&ap2, sizeof(avd), 1, archivo);
+			if (strcasecmp(ap2.name, path) == 0) {
+				break;
+			}
+		} else if (x == 0) {
+			x = 1;
+			qw++;
+		} else {
+			qw++;
+		}
+	}
+	printf("i = %d\n", i);
+	if (i < 6) {
+		path = strtok(NULL, "/");
+		if (path != NULL && path != 0x0) {
+			fclose(archivo);
+			//printf("return1\n");
+			return buscarArchivo(ruta, super, ap2, path, ajuste, inicio,
+					ap.subDirectorios[i]);
+		} else {
+			if (ap2.directorio > 0) {
+				fclose(archivo);
+				return ap2.directorio;
+			} else {
+				detalle c;
+				c.detalle = 0;
+				int uy = 0;
+				for (uy = 0; uy < 5; uy++) {
+					c.archivos[uy].inodo = -1; //+
+				}
+				int pos = 0;
+				fclose(archivo);
+				if (ajuste == 'w') {
+					pos = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitDetalleDirectorio, 1);
+				} else if (ajuste == 'f') {
+					pos = primerAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitDetalleDirectorio, 1);
+				} else {
+					pos = peorAjuste(super.s.arbolVirtualCount, ruta,
+							super.s.apuntadorBitDetalleDirectorio, 1);
+				}
+				FILE* archivo;
+				archivo = fopen(ruta, "rb+");
+
+				ap2.directorio = super.s.apuntadorDetalleDirectorio
+						+ 100 * pos * sizeof(detalle);
+				fseek(archivo, ap.subDirectorios[i], SEEK_SET);
+				fwrite(&ap2, sizeof(avd), 1, archivo);
+				fclose(archivo);
+
+				archivo = fopen(ruta, "rb+");
+				fseek(archivo,
+						super.s.apuntadorDetalleDirectorio
+								+ 100 * pos * sizeof(detalle), SEEK_SET);
+				fwrite(&c, sizeof(detalle), 1, archivo);
+				fclose(archivo);
+				return ap2.directorio;
+			}
+		}
+	} else {
+		//	printf("apuntador = %d\n", ap.apuntadorAVD);
+		if (ap.apuntadorAVD < 1) {
+			printf("ERROR: No existe carpeta \n");
+			return 0;
+		} else {
+			fclose(archivo);
+			return buscarArchivo(ruta, super, ap, path, ajuste, inicio,
+					ap.apuntadorAVD);
+		}
+	}
+
+}
 
 int primerAjuste(int bloque, char* ruta, int inicio, int arch) {
 	FILE* archivo;
@@ -2463,4 +2969,454 @@ int peorAjuste(int bloque, char* ruta, int inicio, int arch) {
 	fwrite(&leer, 1, 1, archivo);
 	fclose(archivo);
 	return posicion;
+}
+
+void encontrar() {
+	//printf("enc");
+	if (id == NULL || path == NULL || name == NULL) {
+		printf("ERROR: Falta un atributo obligatorio.\n");
+	} else {
+		int d = encontrarArchivo(id, path, name, perm, user);
+		if (d == 0) {
+			printf(
+					"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+		}
+	}
+}
+
+int encontrarArchivo(char* id, char* path, char* name, char* perm, char* user) {
+	//printf("encont");
+	char* ruta;
+	char* nombre;
+	int i = 0;
+	for (i = 0; i < 31; i++) {
+		if (montar[i].vdID != NULL) {
+			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
+			if (strcasecmp(montar[i].vdID, id) == 0) {
+				if (montar[i].estado == 1) {
+					ruta = montar[i].path; //%%%
+					nombre = montar[i].name;
+					break;
+				}
+			}
+		}
+	}
+	if (i == 31) {
+		printf("ERROR: El ID no existe.\n");
+		return 0;
+	}
+
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	if (archivo == NULL) {
+		printf("ERROR: No existe el disco.\n");
+		return 0;
+	}
+	mbr structDisco;
+	fseek(archivo, 0, SEEK_SET);
+	fread(&structDisco, sizeof(mbr), 1, archivo);
+	//	printf("t");
+	//VERIFICAR LA PARTICION
+	i = 0;
+	int j = 0;
+	int esLogica = 0;
+	for (i = 0; i < 4; i++) {
+		if (strcasecmp(structDisco.part[i].name, nombre) == 0) {
+			break;
+		}
+		for (j = 0; j < 8; j++) {
+			if (strcasecmp(structDisco.part[i].exten[j].name, name) == 0) {
+				esLogica = 1;
+				break;
+			}
+			if (esLogica == 1) {
+				break;
+			}
+		}
+	}
+	//printf("r");
+	if (i == 4 && esLogica == 0) {
+		printf("ERROR: No existe el nombre indicado.\n");
+		return 0;
+	}
+	superbloque sb;
+	char ajuste;
+	int posicion;
+	if (esLogica == 1) {
+		posicion = structDisco.part[i].exten[j].start;
+		ajuste = structDisco.part[i].exten[j].fit;
+		fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	} else {
+		posicion = structDisco.part[i].start;
+		ajuste = structDisco.part[i].fit;
+		fseek(archivo, structDisco.part[i].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	}
+
+	if (sb.magic == 201404368) {
+		fseek(archivo, sb.s.apuntadorAVD, SEEK_SET);
+		avd ap;
+		fread(&ap, sizeof(ap), 1, archivo);
+
+		char crear[100];
+		char verificar[100];
+		char verificar2[100];
+		strcpy(crear, path);
+		int b, a = 0;
+		for (a = 0; a < 100; a++) {
+			if (crear[a] != '\0') { //Hasta que llegue al final
+				verificar[a] = crear[a];
+				verificar2[a] = crear[a];
+			} else {
+				for (b = a; b >= 0; b--) {
+					if (verificar[b] != '/') {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+					} else {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+						break;
+					}
+				}
+				break;
+			}
+		}
+		char* ruta1;
+		strcpy(verificar, verificar2);
+		if (verificar[0] == '\0') {
+			ruta1 = strtok(crear, "/");
+		} else {
+			ruta1 = strtok(verificar, "/");
+		}
+		fclose(archivo);
+
+		char aux[10];
+		char aux2[10];
+		int k = 0;
+		for (k = 0; k < 10; k++) {
+			aux[k] = '\0';
+			aux2[k] = '\0';
+		}
+		strcpy(aux, name);
+		k = 1;
+		if (aux[0] == '"') {
+			while (aux[k] != '"') {
+				aux2[k - 1] = aux[k];
+				k++;
+			}
+		} else {
+			strcpy(aux2, aux);
+		}
+		if (strcasecmp(path, "/") == 0) {
+			//	 printf("if\n");
+			return 0;
+			buscarRaizCarpeta(ruta, sb, sb.s.apuntadorAVD, aux2, 0);
+		} else {
+			//		 printf("else\n");
+			buscarCarpeta(ruta, ruta1, sb, sb.s.apuntadorAVD, aux2, 0);
+		}
+
+	} else {
+		printf("ERROR: No se ha formateado la particion.\n");
+		return 0;
+	}
+
+}
+
+char* buscarCarpeta(char* ruta, char* path, superbloque super, int posicion,
+		char* mensaje, int espacio) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	avd ap, ap2;
+	fseek(archivo, posicion, SEEK_SET);
+	fread(&ap, sizeof(avd), 1, archivo);
+
+	//char* n=con.name;
+	int i = 0;
+	int j = 0;
+	for (j = 0; j < espacio; j++) {
+		printf(" ");
+	}
+	printf("|_%s\n", ap.name);
+
+	char nombre[50];
+	strcpy(nombre, ap.name);
+	if (nombre[0] == '0' || nombre[15] == '0') {
+		return "";
+	}
+
+	for (i = 0; i < 4; i++) {
+		//int sc=ap.subCarpetas[i];
+		if (ap.subDirectorios[i] > 50) {
+			fseek(archivo, ap.subDirectorios[i], SEEK_SET);
+			fread(&ap2, sizeof(ap2), 1, archivo);
+
+			if (strcasecmp(ap2.name, path) == 0) {
+				break;
+			}
+		}
+	}
+	if (i < 4) {
+		path = strtok(NULL, "/");
+		if (path != NULL && path != 0x0) {
+			fclose(archivo);
+			return buscarCarpeta(ruta, path, super, ap.subDirectorios[i],
+					mensaje, espacio + 2);
+		} else {
+			int a = ap.subDirectorios[i];
+			fclose(archivo);
+			return buscarRaizCarpeta(ruta, super, a, mensaje, espacio + 2);
+		}
+	} else {
+		if (ap.apuntadorAVD < 1) {
+			printf("ERROR: No existe la carpeta indicada.\n");
+			return "";
+		} else {
+			fclose(archivo);
+			int p = ap.apuntadorAVD;
+			return buscarCarpeta(ruta, path, super, p, mensaje, espacio);
+		}
+	}
+	return "";
+}
+
+int buscarRaizCarpeta(char* ruta, superbloque super, int posicion,
+		char* mensaje, int espacio) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	avd ap2, ap;
+
+	fseek(archivo, posicion, SEEK_SET);
+	fread(&ap, sizeof(avd), 1, archivo);
+	//   char* n=ap.puntero;
+	//  printf("nombre = %s\n",n);
+	int i = 0;
+	int j = 0;
+
+	for (j = 0; j < espacio; j++) {
+		printf(" ");
+	}
+	printf("|_%s\n", ap.name);
+	fclose(archivo);
+	for (i = 0; i < 4; i++) {
+
+		if (ap.subDirectorios[i] > 500) {
+			archivo = fopen(ruta, "rb+");
+			fseek(archivo, ap.subDirectorios[i], SEEK_SET);
+			fread(&ap2, sizeof(ap2), 1, archivo);
+			fclose(archivo);
+			buscarRaizCarpeta(ruta, super, ap.subDirectorios[i], mensaje,
+					espacio + 2);
+		}
+	}
+	if (ap.directorio > 100) {
+		buscarRaizArchivo(ruta, super, ap.directorio, mensaje, espacio + 2);
+	}
+	if (ap.apuntadorAVD > 100) {
+		buscarRaizCarpeta(ruta, super, ap.apuntadorAVD, mensaje, espacio);
+	}
+}
+
+int buscarRaizArchivo(char* ruta, superbloque super, int posicion,
+		char* mensaje, int espacio) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	detalle ap2, ap;
+
+	fseek(archivo, posicion, SEEK_SET);
+	fread(&ap, sizeof(detalle), 1, archivo);
+	int i = 0;
+	int x = 0;
+	int j = 0;
+
+	fclose(archivo);
+	for (i = 0; i < 3; i++) {
+		if (ap.archivos[i].inodo > 50) {
+			char aux[10];
+			char aux2[16];
+			for (j = 0; j < 10; j++) {
+				aux[j] = '\0';
+			}
+			for (j = 0; j < 16; j++) {
+				aux2[j] = '\0';
+			}
+			strcpy(aux2, ap.archivos[i].name);
+			strcpy(aux, mensaje);
+
+			if (aux[0] == '?' && aux[1] == '\0') {
+				if (aux2[1] == '\0') {
+					for (j = 0; j < espacio; j++) {
+						printf(" ");
+					}
+					printf("|_");
+					printf(ap.archivos[i].name);
+					printf("\n");
+				}
+			} else if (aux[0] == '*' && aux[1] == '\0') {
+				for (j = 0; j < espacio; j++) {
+					printf(" ");
+				}
+				printf("|_%s\n", ap.archivos[i].name);
+				//printf("\n");
+			} else {
+				j = 0;
+				x = 0;
+				while (aux[j] != '\0') {
+					if (aux[j] == '?') {
+						if (aux[j + 1] == aux2[x + 1]) {
+							j++;
+							x++;
+						} else {
+							break;
+						}
+					} else if (aux[j] == '*') {
+						j++;
+						while (aux[j] != aux2[x] && '\0' != aux2[x]) {
+							x++;
+						}
+					} else if (aux[j] == aux2[x]) {
+						j++;
+						x++;
+					} else {
+						break;
+					}
+				}
+				if (aux[j] == '\0') {
+					int h;
+					for (h = 0; h < espacio; h++) {
+						printf(" ");
+					}
+					printf("|_%s\n", ap.archivos[i].name);
+				}
+			}
+		}
+	}
+}
+
+
+void generarReporte() {
+
+	if (path == NULL || name == NULL || id == NULL) {
+		printf("ERROR: Falta un atributo obligatorio.\n");
+	} else {
+		if (strcasecmp(name, "mbr") == 0 || strcasecmp(name, "mbr\n") == 0) {
+			//printf("entro");
+			int d = reporteMBR(id, name, path);
+			if (d == 0) {
+				printf(
+						"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			}
+		} else if (strcasecmp(name, "disk") == 0
+				|| strcasecmp(name, "disk\n") == 0) {
+			int d = reporteDISK(id, name, path);
+			if (d == 0) {
+				printf(
+						"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			}
+			/*}else if (strcasecmp(name, "inode") == 0
+			 || strcasecmp(name, "inode\n") == 0) {
+			 int d = reporteINODO(id, name, path);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "bitacora") == 0
+			 || strcasecmp(name, "bitacora\n") == 0) {
+			 int d = reporteBITACORA(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "bm_arbdir") == 0
+			 || strcasecmp(name, "bm_arbdir\n") == 0) {
+			 int d = reporteBITMAP_ARBOL(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "bm_detdir") == 0
+			 || strcasecmp(name, "bm_detdir\n") == 0) {
+			 int d = reporteBITMAP_DETALLE(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "bm_inode") == 0
+			 || strcasecmp(name, "bm_inode\n") == 0) {
+			 int d = reporteBITMAP_INODO(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "bm_block") == 0
+			 || strcasecmp(name, "Bm_block\n") == 0) {
+			 int d = reporteBITMAP_BLOQUE(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "tree") == 0
+			 || strcasecmp(name, "tree\n") == 0) {
+			 int d = reporteTREE(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "sb") == 0
+			 || strcasecmp(name, "sb\n") == 0) {
+			 int d = reporteSB(name, path, id);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else if (strcasecmp(name, "file") == 0
+			 || strcasecmp(name, "file\n") == 0) {
+			 //printf("HOLIWI = %s\n",ruta);
+			 if (ruta != NULL) {
+			 int d = reporteFILE(name, path, id, ruta);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else {
+			 printf("Falta el atributo ruta.\n");
+			 }
+			 } else if (strcasecmp(name, "tree_file") == 0
+			 || strcasecmp(name, "tree_file\n") == 0) {
+			 if (ruta != NULL) {
+
+			 int d = reporteTREE_F(id, name, path, ruta);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else {
+			 printf("Falta el atributo ruta.\n");
+			 }
+			 } else if (strcasecmp(name, "tree_directorio") == 0
+			 || strcasecmp(name, "tree_directorio") == 0) {
+			 if (ruta != NULL) {
+
+			 int d = reporteTREE_DIRECTORIO(id, name, path, ruta);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 } else {
+			 printf("Falta el atributo ruta.\n");
+			 }
+			 } else if (strcasecmp(name, "directorio") == 0
+			 || strcasecmp(name, "directorio") == 0) {
+			 int d = reporteDIRECTORIO(id, name, path);
+			 if (d == 0) {
+			 printf(
+			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+			 }
+			 */
+		} else {
+			printf("name = %s\n", name);
+			printf("x\n");
+		}
+	}
 }

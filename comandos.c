@@ -364,7 +364,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//    imprimirDatos();
-		//generarReporte();
+		generarReporte();
 
 	} else if (strcasecmp(com, "exec") == 0 || strcasecmp(com, "EXEC") == 0) {
 		//printf("exec\n");
@@ -638,7 +638,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//    imprimirDatos();
-		//crearArchivo();
+		crearArchivo();
 
 	} else if (strcasecmp(com, "cat") == 0) {
 		//   printf("cat - mostrar\n");
@@ -869,7 +869,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//imprimirDatos();
-		//crearDirectorio();
+	//	crearDirectorio();
 
 	} /*else if (strcasecmp(com, "cp") == 0) {
 	 //      printf("copy\n");
@@ -1016,7 +1016,7 @@ void verificarComando(char *com, char *atributos) {
 		}
 		//imprimirDatos();
 		//	 printf("que ");
-		//	encontrar();
+			encontrar();
 
 	}/* else if (strcasecmp(com, "chown") == 0) {
 	 //    printf("Cambiar propietario\n");
