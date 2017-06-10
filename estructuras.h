@@ -32,9 +32,9 @@ typedef struct CARPETA { //*detalle
 typedef struct INODO {
 	int noInodo;
 	int size;
-	//int noAsignados; //numero de bloques asignados
+	int noAsignados; //numero de bloques asignados ///****
 	int bloques[15];
-	//int indirecto; //apuntador indirecto por si ocupa mas de 4
+	int indirecto; //apuntador indirecto por si ocupa mas de 4 //****
 	//int contador;
 	int uid;
 	int gid;

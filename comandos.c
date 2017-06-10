@@ -211,7 +211,7 @@ void verificarComando(char *com, char *atributos) {
 				if (strcmp(inst, "+") == 0) {
 					mostrarMontadas();
 					bool = 1;
-					cont --;
+					cont--;
 				} else {
 					switch (cont) {
 					case 1:
@@ -236,7 +236,7 @@ void verificarComando(char *com, char *atributos) {
 
 		if (bool != 1) {
 			montarP();
-		//	mostrarMontadas();
+			//	mostrarMontadas();
 		}
 
 	} else if (strcasecmp(com, "umount") == 0 || strcasecmp(com, "UMOUNT") == 0
@@ -732,7 +732,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//imprimirDatos();
-		//remover();
+		remover();
 
 	} else if (strcasecmp(com, "edit") == 0) {
 		//	printf("editar\n");
@@ -869,103 +869,103 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//imprimirDatos();
-	//	crearDirectorio();
+		crearDirectorio();
 
-	} /*else if (strcasecmp(com, "cp") == 0) {
-	 //      printf("copy\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 case 2:
-	 com2 = inst;
-	 break;
-	 case 3:
-	 com3 = inst;
-	 break;
-	 case 4:
-	 com4 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 } else if (i == 2) {
-	 atributoDisco(com2);
-	 } else if (i == 3) {
-	 atributoDisco(com3);
-	 } else if (i == 4) {
-	 atributoDisco(com4);
-	 }
-	 }
-	 // imprimirDatos();
-	 copiar();
+	} else if (strcasecmp(com, "cp") == 0) {
+		//      printf("copy\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			case 2:
+				com2 = inst;
+				break;
+			case 3:
+				com3 = inst;
+				break;
+			case 4:
+				com4 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			} else if (i == 2) {
+				atributoDisco(com2);
+			} else if (i == 3) {
+				atributoDisco(com3);
+			} else if (i == 4) {
+				atributoDisco(com4);
+			}
+		}
+		// imprimirDatos();
+		copiar();
 
-	 } else if (strcasecmp(com, "mv") == 0) {
-	 //     printf("move\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 case 2:
-	 com2 = inst;
-	 break;
-	 case 3:
-	 com3 = inst;
-	 break;
-	 case 4:
-	 com4 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 } else if (i == 2) {
-	 atributoDisco(com2);
-	 } else if (i == 3) {
-	 atributoDisco(com3);
-	 } else if (i == 4) {
-	 atributoDisco(com4);
-	 }
-	 }
-	 //imprimirDatos();
-	 mover();
+	} else if (strcasecmp(com, "mv") == 0) {
+		//     printf("move\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			case 2:
+				com2 = inst;
+				break;
+			case 3:
+				com3 = inst;
+				break;
+			case 4:
+				com4 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			} else if (i == 2) {
+				atributoDisco(com2);
+			} else if (i == 3) {
+				atributoDisco(com3);
+			} else if (i == 4) {
+				atributoDisco(com4);
+			}
+		}
+		//imprimirDatos();
+//		mover();
 
-	 } */else if (strcasecmp(com, "find") == 0) {
+	} else if (strcasecmp(com, "find") == 0) {
 		//	printf("find \n");
 		char atr[200];
 		strcpy(atr, atributos);
@@ -1016,224 +1016,70 @@ void verificarComando(char *com, char *atributos) {
 		}
 		//imprimirDatos();
 		//	 printf("que ");
-			encontrar();
+		encontrar();
 
-	}/* else if (strcasecmp(com, "chown") == 0) {
-	 //    printf("Cambiar propietario\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 case 2:
-	 com2 = inst;
-	 break;
-	 case 3:
-	 com3 = inst;
-	 break;
-	 case 4:
-	 com4 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 } else if (i == 2) {
-	 atributoDisco(com2);
-	 } else if (i == 3) {
-	 atributoDisco(com3);
-	 } else if (i == 4) {
-	 atributoDisco(com4);
-	 }
-	 }
-	 imprimirDatos();
+	} else if (strcasecmp(com, "recovery") == 0) {
+		//     printf("Recuperar sistema\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			}
+		}
+		//imprimirDatos();
 
-	 } else if (strcasecmp(com, "chgrp") == 0) {
-	 //      printf("disk free\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 case 2:
-	 com2 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 } else if (i == 2) {
-	 atributoDisco(com2);
-	 }
-	 }
-	 imprimirDatos();
+	} else if (strcasecmp(com, "loss") == 0) {
+		//     printf("Perdida\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			}
+		}
+//		imprimirDatos();
 
-	 } else if (strcasecmp(com, "ln") == 0) {
-	 //    printf("Enlace\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 case 2:
-	 com2 = inst;
-	 break;
-	 case 3:
-	 com3 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 } else if (i == 2) {
-	 atributoDisco(com2);
-	 } else if (i == 3) {
-	 atributoDisco(com3);
-	 }
-	 }
-	 imprimirDatos();
+	}
 
-	 } else if (strcasecmp(com, "unlink") == 0) {
-	 //   printf("Borrar enlace\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 }
-	 }
-	 imprimirDatos();
-
-	 } else if (strcasecmp(com, "recovery") == 0) {
-	 //     printf("Recuperar sistema\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 }
-	 }
-	 imprimirDatos();
-
-	 } else if (strcasecmp(com, "loss") == 0) {
-	 //     printf("Perdida\n");
-	 char atr[200];
-	 strcpy(atr, atributos);
-	 int j;
-	 for (j = 0; j < 200; j++) {
-	 if (atr[j] == '\\') {
-	 atr[j] = ' ';
-	 }
-	 }
-	 strcpy(atributos, atr);
-	 char aux[100];
-	 strcpy(aux, atributos);
-	 inst = strtok(atributos, " ");
-	 while (inst != NULL) {
-	 inst = strtok(NULL, " ");
-	 switch (cont) {
-	 case 1:
-	 com1 = inst;
-	 break;
-	 }
-	 cont++;
-	 }
-	 int i;
-	 for (i = 1; i < cont - 1; i++) {
-	 if (i == 1) {
-	 atributoDisco(com1);
-	 }
-	 }
-	 imprimirDatos();
-
-	 }
-	 */
 }
