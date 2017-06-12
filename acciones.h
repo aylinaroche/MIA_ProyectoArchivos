@@ -66,7 +66,7 @@ void remover();
 int  removerArchivo(char* id,char* path, int rf);
 int  eliminarArchivo(int posicion,superbloque super, char* ruta, char* name);
 int  eliminarCarpeta(char* ruta,superbloque super,char* path,int posicion);
-int  bitacora(int posicion, int operacion, char*nombre, char*contenido, superbloque super, char* aux4);
+int  bitacora(int posicion, int operacion, char*nombre, char*contenido, superbloque super, char* ruta,char* vdID);
 int  buscarArchivo(char* ruta,superbloque super,avd ap,char* path,char ajuste, int inicio, int atras);
 int  primerAjuste(int bloque,char* ruta, int inicio, int archivo);
 int  mejorAjuste(int bloque,char* ruta, int inicio, int archivo);

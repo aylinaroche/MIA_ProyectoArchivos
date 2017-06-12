@@ -690,7 +690,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//	imprimirDatos();
-		//	mostrarContenido();
+			mostrarContenido();
 
 	} else if (strcasecmp(com, "rm") == 0) {
 		//       printf("rm - Eliminar archivo\n");
@@ -718,6 +718,12 @@ void verificarComando(char *com, char *atributos) {
 			case 3:
 				com3 = inst;
 				break;
+			case 4:
+				com4 = inst;
+				break;
+			case 5:
+				com5 = inst;
+				break;
 			}
 			cont++;
 		}
@@ -725,14 +731,23 @@ void verificarComando(char *com, char *atributos) {
 		for (i = 1; i < cont - 1; i++) {
 			if (i == 1) {
 				atributoDisco(com1);
+				//remover();
 			} else if (i == 2) {
 				atributoDisco(com2);
+				remover();
 			} else if (i == 3) {
 				atributoDisco(com3);
+				remover();
+			} else if (i == 4) {
+				atributoDisco(com4);
+				remover();
+			} else if (i == 5) {
+				atributoDisco(com5);
+				remover();
 			}
 		}
 		//imprimirDatos();
-		remover();
+		//remover();
 
 	} else if (strcasecmp(com, "edit") == 0) {
 		//	printf("editar\n");

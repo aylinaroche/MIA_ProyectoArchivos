@@ -999,20 +999,20 @@ int reporteSB(char* name, char* path, char* id) {
 				"node [shape = record, fontsize=12,fontname=\"%s\", color=lightsalmon, height = 1.2]; \n",
 				"UBUNTU");
 		fprintf(reporte, "Particion[label=\"");
-		char fecha[100]="fecha";
+		char fecha[100] = "fecha";
 		char fecha2[100];
 
 		//printf("1\n");
 		struct tm *timeinfo;
 		struct tm *timeinfo2;
 		/*timeinfo = localtime(&sb.FechaMontado);
-		printf("2\n");
-		strftime(fecha, 100, "%c", timeinfo);
-		printf("2.1");
-		timeinfo2 = localtime(&sb.FechaDesmontado);
-		strftime(fecha2, 100, "%c", timeinfo2);
-		printf("3\n");
-		*/fprintf(reporte, "{%s}|{NOMBRE | VALOR}|", "REPORTE SB");
+		 printf("2\n");
+		 strftime(fecha, 100, "%c", timeinfo);
+		 printf("2.1");
+		 timeinfo2 = localtime(&sb.FechaDesmontado);
+		 strftime(fecha2, 100, "%c", timeinfo2);
+		 printf("3\n");
+		 */fprintf(reporte, "{%s}|{NOMBRE | VALOR}|", "REPORTE SB");
 		fprintf(reporte, "{ ruta: | %s }|", ruta);
 		fprintf(reporte, "{ s_inodes_count: | %d }|", sb.inodosCount);
 		fprintf(reporte, "{ s_blocks_count: | %d }|", sb.bloquesCount);
@@ -1389,5 +1389,399 @@ char* completarDIRECTORIO(char* ruta, char* mensaje, int posicion) {
 		}
 	}
 	return cadena;
+}
+
+int reporteBITACORA(char* name, char* path, char* id) {
+	char* ruta;
+	char* nombre;
+	int i = 0;
+	for (i = 0; i < 31; i++) {
+		if (montar[i].vdID != NULL) {
+			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
+			if (strcasecmp(montar[i].vdID, id) == 0) {
+				if (montar[i].estado == 1) {
+					ruta = montar[i].path; //%%%
+					nombre = montar[i].name;
+					break;
+				}
+			}
+		}
+	}
+	if (i == 31) {
+		printf("ERROR: El ID no existe.\n");
+		return 0;
+	}
+
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	if (archivo == NULL) {
+		printf("ERROR: No existe el disco.\n");
+		return 0;
+	}
+	mbr structDisco;
+	fseek(archivo, 0, SEEK_SET);
+	fread(&structDisco, sizeof(mbr), 1, archivo);
+
+	//VERIFICAR SI EL NOMBRE COINCIDE CON LA PARTICION
+	int j = 0;
+	int existeLogica = 0;
+	for (i = 0; i < 4; i++) { //Primaria/extendida
+		//char* operacionrar = structDisco.part[i].name;
+		if (strcasecmp(structDisco.part[i].name, nombre) == 0) {
+			break;
+		}
+		for (j = 0; j < 20; j++) { //logica
+			if (strcasecmp(structDisco.part[i].exten[j].name, nombre) == 0) {
+				existeLogica = 1;
+				break;
+			}
+		}
+		if (existeLogica == 1) {
+			break;
+		}
+
+	}
+	if (i == 4 && existeLogica == 0) {
+		printf("ERROR: No existe el nombre indicado.\n");
+		return 0;
+	}
+	superbloque sb;
+	char ajuste;
+
+	int posicion;
+	if (existeLogica == 1) {
+		posicion = structDisco.part[i].exten[j].start;
+		ajuste = structDisco.part[i].exten[j].fit;
+		fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	} else {
+		posicion = structDisco.part[i].start;
+		ajuste = structDisco.part[i].fit;
+		fseek(archivo, structDisco.part[i].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	}
+
+	sb.magic = 201404368;
+	if (sb.magic == 201404368) {
+		fseek(archivo, sb.s.apuntadorLog, SEEK_SET);
+		journal bitacora;
+		fread(&bitacora, sizeof(bitacora), 1, archivo);
+
+		char direcc[200];
+		char direcc2[200];
+		int i = 0;
+		for (i = 0; i < 200; i++) {
+			direcc2[i] = '\0';
+		}
+		strcpy(direcc, path);
+
+		for (i = 0; i < 200; i++) {
+			if (direcc[i] == '/') {
+				direcc2[i] = direcc[i];
+				char *aux = (char*) malloc(200);
+				strcpy(aux, "mkdir ");
+				strcat(aux, direcc2);
+				//printf("Ruta de Archivo: %s\n", aux);
+				system(aux);
+				free(aux);
+			} else {
+				direcc2[i] = direcc[i];
+				if (direcc[i] == '\0') {
+					break;
+				}
+			}
+		}
+
+		for (i = 0; i < 200; i++) {
+			if (direcc2[i] == '\n') {
+				direcc2[i] = '\0';
+			}
+		}
+
+		//printf("CrearArchivo");
+//CREA EL ARCHIVO
+		FILE* reporte;
+		reporte = fopen(path, "w+");
+		char fecha[100];
+		struct tm *timeinfo;
+		timeinfo = localtime(&bitacora.fecha);
+		strftime(fecha, 100, "%c", timeinfo);
+		//printf("a");
+		int cont = 0;
+		while (bitacora.tipo > 0) { //MIENTRAS SEA CARPETA
+			cont += 1;
+			char operacion[100];
+			char tipoOperacion[100];
+			if (bitacora.operacion == 1) {
+				strcpy(operacion, "mkfile");
+			} else if (bitacora.operacion == 2) {
+				strcpy(operacion, "cat");
+			} else if (bitacora.operacion == 3) {
+				strcpy(operacion, "rm");
+			} else if (bitacora.operacion == 5) {
+				strcpy(operacion, "ren");
+			} else if (bitacora.operacion == 6) {
+				strcpy(operacion, "mkdir");
+			} else {
+				strcpy(operacion, "formatear");
+			}
+			printf("* %d\n", cont);
+			int a = 0;
+			int b = 0;
+			char nombre[100];
+			strcpy(nombre, bitacora.nombre);
+			for (b = 0; b < 100; b++) {
+				if (nombre[b] == '.') {
+					a++;
+				}
+			}
+			if (a > 0) {
+				strcpy(tipoOperacion, "archivo");
+			} else {
+				strcpy(tipoOperacion, "carpeta");
+			}
+			fprintf(reporte,
+					"OPERACION: \"%s\" \n TIPO: \"%s\" \n NOMBRE : \"%s\" \n CONTENIDO: \"%s\" \n FECHA: \"%s\" \n ",
+					operacion, tipoOperacion, bitacora.nombre,
+					bitacora.contenido, asctime(timeinfo));
+
+			fprintf(reporte, "\n");
+
+			fseek(archivo, bitacora.tipo, SEEK_SET);
+			fread(&bitacora, sizeof(bitacora), 1, archivo);
+
+			if (cont == 20) {
+				break;
+			}
+		}
+		printf("c");
+		char operacion[100];
+		char tipoOperacion[100];
+		if (bitacora.operacion == 1) {
+			strcpy(operacion, "mkfile");
+		} else if (bitacora.operacion == 2) {
+			strcpy(operacion, "cat");
+		} else if (bitacora.operacion == 3) {
+			strcpy(operacion, "rm");
+		} else if (bitacora.operacion == 5) {
+			strcpy(operacion, "ren");
+		} else if (bitacora.operacion == 6) {
+			strcpy(operacion, "mkdir");
+		}
+		int a = 0;
+		int b = 0;
+		char nombre[100];
+		strcpy(nombre, bitacora.nombre);
+		for (b = 0; b < 100; b++) {
+			if (nombre[b] == '.') {
+				a++;
+			}
+		}
+		if (a > 0) {
+			strcpy(tipoOperacion, "archivo");
+		} else {
+			strcpy(tipoOperacion, "carpeta");
+		}
+
+		fprintf(reporte,
+				"OPERACION: \"%s\" \n TIPO: \"%s\" \n NOMBRE : \"%s\" \n CONTENIDO: \"%s\" \n FECHA: \"%s\"",
+				operacion, tipoOperacion, bitacora.nombre, bitacora.contenido,
+				fecha);
+		fprintf(reporte, "\n\n");
+
+		fclose(reporte);
+
+		printf("-> Se creo el reporte BITACORA correctamente.\n");
+		char consola[300];
+		strcpy(consola, "");
+		strcat(consola, "xdg-open ");
+		strcat(consola, direcc2);
+		system(consola);
+	} else {
+		printf("ERROR: La particion no se ha formateado.\n");
+	}
+
+	return 1;
+}
+
+int reporteFILE(char* name, char* path, char* id, char* filen) {
+	char* ruta;
+	char* nombre;
+	int i = 0;
+	for (i = 0; i < 31; i++) {
+		if (montar[i].vdID != NULL) {
+			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
+			if (strcasecmp(montar[i].vdID, id) == 0) {
+				if (montar[i].estado == 1) {
+					ruta = montar[i].path; //%%%
+					nombre = montar[i].name;
+					break;
+				}
+			}
+		}
+	}
+	if (i == 31) {
+		printf("ERROR: El ID no existe.\n");
+		return 0;
+	}
+
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	if (archivo == NULL) {
+		printf("ERROR: No existe el disco.\n");
+		return 0;
+	}
+	mbr structDisco;
+	fseek(archivo, 0, SEEK_SET);
+	fread(&structDisco, sizeof(mbr), 1, archivo);
+
+//VERIFICAR LA PARTICION
+	i = 0;
+	int j = 0;
+	int esLogica = 0;
+	for (i = 0; i < 4; i++) {
+		if (strcasecmp(structDisco.part[i].name, nombre) == 0) {
+			break;
+		}
+		for (j = 0; j < 20; j++) {
+			if (strcasecmp(structDisco.part[i].exten[j].name, name) == 0) {
+				esLogica = 1;
+				break;
+			}
+			if (esLogica == 1) {
+				break;
+			}
+		}
+	}
+	if (i == 4 && esLogica == 0) {
+		printf("ERROR: No existe el nombre indicado.\n");
+		return 0;
+	}
+	superbloque sb;
+	char ajuste;
+	int posicion;
+	if (esLogica == 1) {
+		posicion = structDisco.part[i].exten[j].start;
+		ajuste = structDisco.part[i].exten[j].fit;
+		fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	} else {
+		posicion = structDisco.part[i].start;
+		ajuste = structDisco.part[i].fit;
+		fseek(archivo, structDisco.part[i].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	}
+
+	if (sb.magic == 201404368) {
+		fseek(archivo, sb.s.apuntadorAVD, SEEK_SET);
+		avd ap;
+		fread(&ap, sizeof(ap), 1, archivo);
+
+		char crear[100];
+		char verificar[100];
+		char verificar2[100];
+		strcpy(crear, filen);
+		//printf("crear = %s\n",filen);
+		int b, a = 0;
+		for (a = 0; a < 100; a++) {
+			if (crear[a] != '\0') { //Hasta que llegue al final
+				verificar[a] = crear[a];
+				verificar2[a] = crear[a];
+			} else {
+				for (b = a; b >= 0; b--) {
+					if (verificar[b] != '/') {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+					} else {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+						break;
+					}
+				}
+				break;
+			}
+		}
+		char* ruta2;
+		strcpy(verificar, verificar2);
+		if (verificar[0] == '\0') {
+			ruta2 = strtok(crear, "/");
+		} else {
+			ruta2 = strtok(verificar, "/");
+		}
+		fclose(archivo);
+		int datos = 0;
+		ruta2 = strtok(verificar2, "/");
+		//	printf("buscarArchivo\n");
+		//	printf("ruta::%s, ruta2::%s\n",ruta,ruta2);
+		datos = buscarArchivo(ruta, sb, ap, ruta2, ajuste, posicion,
+				sb.s.apuntadorAVD);
+
+		if (datos > 0) {
+			ruta2 = strtok(crear, "/");
+			while ((strstr(ruta2, ".") == 0x0 || strstr(ruta2, ".") == ""
+					|| strstr(ruta2, ".") == NULL) && ruta2 != NULL) {
+				ruta2 = strtok(NULL, "/");
+			}
+			if (ruta2 != NULL) {
+				char mensaje[200];
+				//		printf("contenidoArchivo.\n");
+				strcpy(mensaje, contenidoArchivo(" ", datos, sb, ruta, ruta2));
+				printf("* * * * * * * * * * * * * * * * * * * * * *\n%s\n",
+						mensaje);
+
+//////////////////////////////////////////////////////
+
+				char direcc[200];
+				char direcc2[200];
+				int i = 0;
+				for (i = 0; i < 200; i++) {
+					direcc2[i] = '\0';
+				}
+				strcpy(direcc, path);
+
+				for (i = 0; i < 200; i++) {
+					if (direcc[i] == '/') {
+						direcc2[i] = direcc[i];
+						char *aux = (char*) malloc(200);
+						strcpy(aux, "mkdir ");
+						strcat(aux, direcc2);
+						//printf("Ruta de Archivo: %s\n", aux);
+						system(aux);
+						free(aux);
+					} else {
+						direcc2[i] = direcc[i];
+						if (direcc[i] == '\0') {
+							break;
+						}
+					}
+				}
+				for (i = 0; i < 200; i++) {
+					if (direcc2[i] == '\n') {
+						direcc2[i] = '\0';
+					}
+				}
+
+				FILE* reporte;
+				reporte = fopen(path, "w+");
+				fprintf(reporte, "Reporte FILES: %s\n\n", ruta);
+				fprintf(reporte, "%s", mensaje);
+				fclose(reporte);
+
+				printf("-> Se creo el reporte FILE correctamente.\n");
+				char consola[300];
+				strcpy(consola, "");
+				strcat(consola, "xdg-open ");
+				strcat(consola, direcc2);
+				system(consola);
+				return 1;
+
+			}
+		} else {
+			printf("ERROR: La ruta no existe.\n");
+		}
+	} else {
+		printf("ERROR: La particion no esta formateada.\n");
+	}
+	return 1;
 }
 

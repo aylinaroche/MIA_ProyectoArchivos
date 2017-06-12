@@ -50,6 +50,7 @@ typedef struct JOURNAL {
 	char nombre[50];
 	char contenido[50];
 	time_t fecha;
+	char vdID[5];
 //
 	char propietario[50];
 	char permisos[50];
@@ -106,7 +107,7 @@ typedef struct MONTAR { //Cola para realizar el mount
 	int uso;
 } mount;
 
-typedef struct EBR { //Cambiar
+typedef struct EBR { //20 maximo
 	char status;
 	char fit;
 	int start;
