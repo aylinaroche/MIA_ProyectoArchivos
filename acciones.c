@@ -13,6 +13,7 @@
 #include <setjmp.h>
 #include <math.h>
 
+char* ruta = NULL;
 char* size = NULL;
 char* unit = NULL;
 char* path = NULL;
@@ -59,6 +60,7 @@ int contadorGrupo = 0;
 char* contenidoUsers = NULL;
 
 void limpiarVariables() {
+	ruta = NULL;
 	size = NULL;
 	unit = NULL;
 	path = NULL;
@@ -73,9 +75,6 @@ void limpiarVariables() {
 	boolH = 0;
 	boolI = 0;
 	nDirectorio = NULL;
-	usuario = NULL;
-	password = NULL;
-	grupo = NULL;
 	p = NULL;
 	cont = NULL;
 	ugo = NULL;
@@ -83,8 +82,6 @@ void limpiarVariables() {
 	rf = 0;
 	dest = NULL;
 	iddest = NULL;
-	perm = NULL;
-	user = NULL;
 	file1 = NULL;
 	file2 = NULL;
 	file3 = NULL;
@@ -265,9 +262,24 @@ void atributoDisco(char* coman) {
 		} else if (strcasecmp(token1, "$iddest") == 0) {
 			token1 = strtok(NULL, ">");
 			iddest = token1;
-		} else if (strcasecmp(token1, "@perm") == 0) {
+		} else if (strcasecmp(token1, "$ruta") == 0) {
 			token1 = strtok(NULL, ">");
-			perm = token1;
+			char direccion[200];
+			strcpy(direccion, token1);
+			if (direccion[0] == '"') {
+				int i = 0;
+				while (direccion[i + 1] != '"') { //Le quita las comillas
+					direccion[i] = direccion[i + 1];
+					if (direccion[i] == ' ') {
+						direccion[i] = '_';
+					}
+					i++;
+				}
+				direccion[i] = '\0';
+				direccion[i + 1] = '\0';
+			}
+			strcpy(token1, direccion);
+			ruta = token1;
 		} else if (strcasecmp(token1, "$file1") == 0) {
 			token1 = strtok(NULL, ">");
 			char direccion[200];
@@ -4558,7 +4570,6 @@ int mostrarContenidoArchivo(char* id, char* filen) {
 	return 1;
 }
 
-
 void generarReporte() {
 
 	if (path == NULL || name == NULL || id == NULL) {
@@ -4619,33 +4630,33 @@ void generarReporte() {
 			if (d == 0) {
 				printf(
 						"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
-			}/*
-			 } else if (strcasecmp(name, "file") == 0
-			 || strcasecmp(name, "file\n") == 0) {
-			 //printf("HOLIWI = %s\n",ruta);
-			 if (ruta != NULL) {
-			 int d = reporteFILE(name, path, id, ruta);
-			 if (d == 0) {
-			 printf(
-			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
-			 }
-			 /*
-			 } else {
-			 printf("Falta el atributo ruta.\n");
-			 }
-			 } else if (strcasecmp(name, "tree_file") == 0
-			 || strcasecmp(name, "tree_file\n") == 0) {
-			 if (ruta != NULL) {
+			}
+		} else if (strcasecmp(name, "file") == 0
+				|| strcasecmp(name, "file\n") == 0) {
+			//printf("HOLIWI = %s\n",ruta);
+			if (ruta != NULL) {
+				int d = reporteFILE(name, path, id, ruta);
+				if (d == 0) {
+					printf(
+							"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+				}
 
-			 int d = reporteTREE_F(id, name, path, ruta);
-			 if (d == 0) {
-			 printf(
-			 "Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
-			 }
-			 } else {
-			 printf("Falta el atributo ruta.\n");
-			 }
-			 } else if (strcasecmp(name, "tree_directorio") == 0
+			} else {
+				printf("Falta el atributo ruta.\n");
+			}
+		} else if (strcasecmp(name, "tree_file") == 0
+				|| strcasecmp(name, "tree_file\n") == 0) {
+			if (ruta != NULL) {
+
+				int d = reporteTREE_F(id, name, path, ruta);
+				if (d == 0) {
+					printf(
+							"Se han encontrado errores en el comando. No se ha podido ejecutar correctamente.\n");
+				}
+			} else {
+				printf("Falta el atributo ruta.\n");
+			}
+			/*} else if (strcasecmp(name, "tree_directorio") == 0
 			 || strcasecmp(name, "tree_directorio") == 0) {
 			 if (ruta != NULL) {
 

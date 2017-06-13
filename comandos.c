@@ -359,8 +359,8 @@ void verificarComando(char *com, char *atributos) {
 				atributoDisco(com2);
 			} else if (i == 3) {
 				atributoDisco(com3);
-				//}//else if (i == 4) {
-				//	atributoDisco(com4);
+			} else if (i == 4) {
+				atributoDisco(com4);
 			}
 		}
 		//    imprimirDatos();
@@ -690,7 +690,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//	imprimirDatos();
-			mostrarContenido();
+		mostrarContenido();
 
 	} else if (strcasecmp(com, "rm") == 0) {
 		//       printf("rm - Eliminar archivo\n");

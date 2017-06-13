@@ -1785,3 +1785,766 @@ int reporteFILE(char* name, char* path, char* id, char* filen) {
 	return 1;
 }
 
+int reporteTREE_FILE(char* id, char* name, char* path, char* ruta) {
+	//printf("\nID = %s\n",id);
+
+//VERIFICA SI EL EL ID EXISTE
+	char* direcc;
+	char* nombres;
+	int boolIgual = 0;
+	int i = 0;
+	for (i = 0; i < 31; i++) {
+		if (montar[i].vdID != NULL) {
+			if (strcasecmp(montar[i].vdID, id) == 0) {
+				printf("-> Se ha encontrado una particion con el id.\n");
+				boolIgual = 1;
+			}
+			if (boolIgual == 1) {
+				if (montar[i].estado == 1) {
+					direcc = montar[i].path;
+					nombres = montar[i].name;
+					break;
+				}
+			}
+		}
+	}
+	if (boolIgual == 0) {
+		printf("ERROR: El ID no existe.\n");
+		return 0;
+	}
+	printf("path =%s\n", direcc);
+
+//VERIFICA SI EL ARCHIVO EXISTE
+	FILE* archivo;
+	archivo = fopen(direcc, "rb+");
+	if (archivo == NULL) {
+		printf("ERROR: No existe el archivo.\n");
+		return 0;
+	}
+	mbr structDisco;
+	fseek(archivo, 0, SEEK_SET);
+	fread(&structDisco, sizeof(mbr), 1, archivo);
+
+	int esLogica = 0;
+	i = 0;
+	int ii = 0;
+	for (i = 0; i < 4; i++) {
+		if (strcasecmp(structDisco.part[i].name, nombres) == 0) {
+			break;
+		}
+		for (ii = 0; ii < 20; ii++) {
+			if (strcasecmp(structDisco.part[i].exten[ii].name, nombres) == 0) {
+				esLogica = 1;
+				break;
+			}
+			if (esLogica == 1) {
+				break;
+			}
+		}
+	}
+	if (i == 4 && esLogica == 0) {
+		printf("No Existe el nombre");
+		return 0;
+	}
+
+	superbloque sb;
+	if (esLogica == 1) {
+		fseek(archivo, structDisco.part[i].exten[ii].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+
+	} else {
+		//int mos = structDisco.part[i].start;
+		fseek(archivo, structDisco.part[i].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	}
+
+//CREA LA CARPETA SI NO EXISTE
+	char direccion[200];
+	char auxDirecc[200];
+	for (i = 0; i < 200; i++) {
+		auxDirecc[i] = '\0';
+	}
+	strcpy(direccion, path);
+	char nombre[50];
+	int n = 0;
+	for (i = 0; i < 200; i++) {
+		nombre[n] = direccion[i];
+		if (direccion[i] == '/') {
+			auxDirecc[i] = direccion[i];
+			char *aux = (char*) malloc(150);
+			strcpy(aux, "mkdir ");
+			strcat(aux, auxDirecc);
+			//   printf("auxD=%s\n",auxDirecc);
+			system(aux);
+			free(aux);
+			n = 0;
+		}
+		auxDirecc[i] = direccion[i];
+		n++;
+		if (direccion[i] == '\0') {
+			break;
+		}
+	}
+
+	char d[200];
+	strcpy(d, auxDirecc);
+
+	char* ext = NULL;
+	ext = &d;
+	char* nam = NULL;
+	nam = &d;
+//printf("EEEE=%s\n",ext);
+	int boolExt = 0;
+	char* auxName;
+	char* extImg;
+	ext = strtok(nam, ".");
+//printf("Ext=%s\n",ext);
+	auxName = ext;
+
+	while (ext != NULL) {
+		ext = strtok(NULL, ".");
+		//printf("ex =%s\n",ext);
+		extImg = ext;
+		if (ext != NULL) {
+			if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0) {
+				boolExt = 1;
+				break;
+			}
+		}
+	}
+	if (boolExt == 0) {
+		printf("ERROR: La imagen no tiene extension.\n");
+		return 0;
+	}
+
+//printf("auxName= %s\n",auxName);
+	char *e = ".dot";
+	char *dot = (char *) malloc(1 + strlen(auxName) + strlen(e));
+	strcpy(dot, auxName);
+	strcat(dot, e);
+//printf("dd=%s\n",dot);
+
+	//sb.magic = 201404368;
+	if (sb.magic == 201404368) {
+
+		char crear[100];
+		char verificar[100];
+		char verificar2[100];
+		strcpy(crear, ruta);
+		int b, a = 0;
+		for (a = 0; a < 100; a++) {
+			if (crear[a] != '\0') {
+				verificar[a] = crear[a];
+				verificar2[a] = crear[a];
+			} else {
+				for (b = a; b >= 0; b--) {
+					if (verificar[b] != '/') {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+					} else {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+		char* path1;
+		strcpy(verificar, verificar2);
+		if (verificar[0] == '\0') {
+			path1 = strtok(crear, "/");
+		} else {
+			path1 = strtok(verificar, "/");
+		}
+
+		avd con;
+		int info3;
+		info3 = buscarArchivo(direcc, sb, con, path1, "w", 0, sb.s.apuntadorAVD);
+		if (info3 > 10) {
+
+//CREA EL REPORTE
+			FILE* report;
+			report = fopen(dot, "w+");
+			fprintf(report, "digraph directorio{\n");
+			fprintf(report, "rankdir = LR;\n");
+			fprintf(report,
+					"node [shape = record, fontsize=12,fontname=\"%s\", color=orange, height = 0.7]; ",
+					"UBUNTU");
+			char* au = verificar2;
+			path1 = strtok(au, "/");
+			fprintf(report, completarTreeD1(ruta, "", sb.s.apuntadorAVD, path1));
+			au = crear;
+			path1 = strtok(au, "/");
+			while ((strstr(path1, ".") == 0x0 || strstr(path1, ".") == ""
+					|| strstr(path1, ".") == NULL) && path1 != NULL) {
+				path1 = strtok(NULL, "/");
+			}
+			if (path1 != NULL && path1 != 0x0) {
+				//fprintf(report,LlenarReporteFile(ruta,"",info3,path1));
+			}
+
+			fprintf(report, "\n}");
+			fclose(report);
+
+			char *r1 = "dot -Tpng ";
+			char *r2 = " -o ";
+			char *ruta = (char*) malloc(
+					1 + strlen(r1) + strlen(dot) + strlen(r2) + strlen(path));
+			strcpy(ruta, r1);
+			strcat(ruta, dot);
+			strcat(ruta, r2);
+			strcat(ruta, path);
+			printf("RUTA= %s\n", ruta);
+
+			char consola[300];
+			strcpy(consola, "");
+			strcat(consola, ruta);
+			printf("%s\n", consola);
+			system(consola);
+			printf("-> Se creo el reporte TREE_DIRECTORIO correctamente.\n");
+			char consola2[300];
+			strcpy(consola2, "");
+			strcat(consola2, "xdg-open ");
+			strcat(consola2, auxDirecc);
+			system(consola2);
+		} else {
+
+			printf("ERROR: No existe la ruta indicada.\n");
+		}
+	} else {
+		printf("ERROR: No se ha formateado la particion\n");
+	}
+	return 1;
+}
+
+int reporteTREE_F(char* id, char* name, char* path, char* filen) {
+	char* ruta;
+	char* nombres;
+	int i = 0;
+	for (i = 0; i < 31; i++) {
+		if (montar[i].vdID != NULL) {
+			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
+			if (strcasecmp(montar[i].vdID, id) == 0) {
+				if (montar[i].estado == 1) {
+					ruta = montar[i].path; //%%%
+					nombres = montar[i].name;
+					break;
+				}
+			}
+		}
+	}
+	if (i == 31) {
+		printf("ERROR: El ID no existe.\n");
+		return 0;
+	}
+
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	if (archivo == NULL) {
+		printf("ERROR: No existe el disco.\n");
+		return 0;
+	}
+	mbr structDisco;
+	fseek(archivo, 0, SEEK_SET);
+	fread(&structDisco, sizeof(mbr), 1, archivo);
+
+//VERIFICAR LA PARTICION
+	i = 0;
+	int j = 0;
+	int esLogica = 0;
+	for (i = 0; i < 4; i++) {
+		if (strcasecmp(structDisco.part[i].name, nombres) == 0) {
+			break;
+		}
+		for (j = 0; j < 8; j++) {
+			if (strcasecmp(structDisco.part[i].exten[j].name, name) == 0) {
+				esLogica = 1;
+				break;
+			}
+			if (esLogica == 1) {
+				break;
+			}
+		}
+	}
+	if (i == 4 && esLogica == 0) {
+		printf("ERROR: No existe el nombre indicado.\n");
+		return 0;
+	}
+	superbloque sb;
+	char ajuste;
+	int posicion;
+	if (esLogica == 1) {
+		posicion = structDisco.part[i].exten[j].start;
+		ajuste = structDisco.part[i].exten[j].fit;
+		fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	} else {
+		posicion = structDisco.part[i].start;
+		ajuste = structDisco.part[i].fit;
+		fseek(archivo, structDisco.part[i].start, SEEK_SET);
+		fread(&sb, sizeof(superbloque), 1, archivo);
+	}
+	//CREA LA CARPETA SI NO EXISTE
+	char direccion[200];
+	char auxDirecc[200];
+	for (i = 0; i < 200; i++) {
+		auxDirecc[i] = '\0';
+	}
+	strcpy(direccion, path);
+	char nombre[50];
+	int n = 0;
+	for (i = 0; i < 200; i++) {
+		nombre[n] = direccion[i];
+		if (direccion[i] == '/') {
+			auxDirecc[i] = direccion[i];
+			char *aux = (char*) malloc(150);
+			strcpy(aux, "mkdir ");
+			strcat(aux, auxDirecc);
+			//   printf("auxD=%s\n",auxDirecc);
+			system(aux);
+			free(aux);
+			n = 0;
+		}
+		auxDirecc[i] = direccion[i];
+		n++;
+		if (direccion[i] == '\0') {
+			break;
+		}
+	}
+
+	char d[200];
+	strcpy(d, auxDirecc);
+
+	char* ext = NULL;
+	ext = &d;
+	char* nam = NULL;
+	nam = &d;
+	//printf("EEEE=%s\n",ext);
+	int boolExt = 0;
+	char* auxName;
+	char* extImg;
+	ext = strtok(nam, ".");
+	//printf("Ext=%s\n",ext);
+	auxName = ext;
+
+	while (ext != NULL) {
+		ext = strtok(NULL, ".");
+		//printf("ex =%s\n",ext);
+		extImg = ext;
+		if (ext != NULL) {
+			if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0) {
+				boolExt = 1;
+				break;
+			}
+		}
+	}
+	if (boolExt == 0) {
+		printf("ERROR: La imagen no tiene extension.\n");
+		return 0;
+	}
+
+	//printf("auxName= %s\n",auxName);
+	char *e = ".dot";
+	char *dot = (char *) malloc(1 + strlen(auxName) + strlen(e));
+	strcpy(dot, auxName);
+	strcat(dot, e);
+	//printf("dd=%s\n",dot);
+
+	if (sb.magic == 201404368) {
+		fseek(archivo, sb.s.apuntadorAVD, SEEK_SET);
+		avd ap;
+		fread(&ap, sizeof(ap), 1, archivo);
+
+		char crear[100];
+		char verificar[100];
+		char verificar2[100];
+		strcpy(crear, filen);
+		//printf("crear = %s\n",filen);
+		int b, a = 0;
+		for (a = 0; a < 100; a++) {
+			if (crear[a] != '\0') { //Hasta que llegue al final
+				verificar[a] = crear[a];
+				verificar2[a] = crear[a];
+			} else {
+				for (b = a; b >= 0; b--) {
+					if (verificar[b] != '/') {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+					} else {
+						verificar[b] = '\0';
+						verificar2[b] = '\0';
+						break;
+					}
+				}
+				break;
+			}
+		}
+		char* ruta2;
+		strcpy(verificar, verificar2);
+		if (verificar[0] == '\0') {
+			ruta2 = strtok(crear, "/");
+		} else {
+			ruta2 = strtok(verificar, "/");
+		}
+		fclose(archivo);
+		int datos = 0;
+		ruta2 = strtok(verificar2, "/");
+		//	printf("buscarArchivo\n");
+		//	printf("ruta::%s, ruta2::%s\n",ruta,ruta2);
+		datos = buscarArchivo(ruta, sb, ap, ruta2, ajuste, posicion,
+				sb.s.apuntadorAVD);
+		printf("datos== %d\n", datos);
+		if (datos > 10) {
+
+			//CREA EL REPORTE
+			FILE* report;
+			report = fopen(dot, "w+");
+			fprintf(report, "digraph directorio{\n");
+			fprintf(report, "rankdir = LR;\n");
+			fprintf(report,
+					"node [shape = record, fontsize=12,fontname=\"%s\", color=orange, height = 0.7]; ",
+					"UBUNTU");
+			char* au = verificar2;
+			ruta2 = strtok(au, "/");
+			printf("holi\n");
+			fprintf(report,completarTreeD1(ruta,"",sb.s.apuntadorAVD,ruta2));
+			//au = crear;
+			ruta2 = strtok(crear, "/");
+			//while ((strstr(ruta2, ".") == 0x0 || strstr(ruta2, ".") == "") && ruta2 != NULL) {
+				//ruta2 = strtok(NULL, "/");
+			//}
+			printf("holo\n");
+			if (ruta2 != NULL && ruta2 != 0x0) {
+				fprintf(report,LlenarReporteFile(ruta,"",datos,ruta2));
+			}
+
+			fprintf(report, "\n}");
+			fclose(report);
+
+			char *r1 = "dot -Tpng ";
+			char *r2 = " -o ";
+			char *ruta = (char*) malloc(
+					1 + strlen(r1) + strlen(dot) + strlen(r2) + strlen(path));
+			strcpy(ruta, r1);
+			strcat(ruta, dot);
+			strcat(ruta, r2);
+			strcat(ruta, path);
+			printf("RUTA= %s\n", ruta);
+
+			char consola[300];
+			strcpy(consola, "");
+			strcat(consola, ruta);
+			printf("%s\n", consola);
+			system(consola);
+			printf("-> Se creo el reporte TREE_DIRECTORIO correctamente.\n");
+			char consola2[300];
+			strcpy(consola2, "");
+			strcat(consola2, "xdg-open ");
+			strcat(consola2, auxDirecc);
+			system(consola2);
+		} else {
+
+			printf("ERROR: No existe la ruta indicada.\n");
+		}
+	} else {
+		printf("ERROR: La particion no esta formateada.\n");
+	}
+	return 1;
+}
+
+char* LlenarReporteFile(char*aux4,char*mensaje,int posicion,char*path1){
+    FILE* disco;
+    disco = fopen(aux4,"rb+");
+    detalle con;
+    fseek(disco,posicion,SEEK_SET);
+    fread(&con,sizeof(detalle),1,disco);
+    char auxiliatura[10000];
+    char cosas[25];
+    sprintf(cosas,"%d",posicion);
+   strcpy(auxiliatura,"node");
+     strcat(auxiliatura,cosas);
+    strcat(auxiliatura," [label=\" {<f0> nombre} ");
+    int i=0;
+    int k=0;
+    int w=0;
+    for(i=0;i<5;i++){
+      int mostrar= con.archivos[i].inodo;
+      char* mostrar2 =con.archivos[i].name;
+     if(con.archivos[i].inodo>1){
+      if(strcasecmp(con.archivos[i].name,path1)==0){
+     strcat(auxiliatura,"|{");
+     strcat(auxiliatura,con.archivos[i].name);
+      strcat(auxiliatura,"}");
+      break;
+     }
+      }
+    }
+   strcat(auxiliatura,"\"]; \n");
+   fclose(disco);
+   if(i<5){
+       char cosas2[25];
+        char cosas3[25];
+        sprintf(cosas2,"%d",i);
+       sprintf(cosas3,"%d",con.archivos[i].inodo);
+       strcat(auxiliatura," node");
+       strcat(auxiliatura,cosas);
+       strcat(auxiliatura," -> node");
+       strcat(auxiliatura,cosas3);
+         strcat(auxiliatura,":f0 ;");
+    strcat(auxiliatura,LlenarReporteFile2(aux4," ",con.archivos[i].inodo));
+   }else{
+       if(con.detalle>0){
+           char cosas2[25];
+            char cosas3[25];
+            sprintf(cosas2,"%d",i);
+           sprintf(cosas3,"%d",con.detalle);
+           strcat(auxiliatura," node");
+           strcat(auxiliatura,cosas);
+           strcat(auxiliatura," -> node");
+           strcat(auxiliatura,cosas3);
+             strcat(auxiliatura,";");
+        strcat(auxiliatura,LlenarReporteFile(aux4," ",con.detalle,path1));
+       }
+   }
+     return auxiliatura;
+
+}
+
+char* LlenarReporteFile2(char*aux4,char*mensaje,int posicion){
+    FILE* disco;
+    disco = fopen(aux4,"rb+");
+    inodo con;
+    fseek(disco,posicion,SEEK_SET);
+    fread(&con,sizeof(inodo),1,disco);
+    char auxiliatura[10000];
+    char cosas[25];
+    char cosas2[25];
+    sprintf(cosas,"%d",posicion);
+   strcpy(auxiliatura,"node");
+     strcat(auxiliatura,cosas);
+    strcat(auxiliatura," [label=\" inodo <p0>|<f0>|<f1>|<f2>|<f3>|<f4> \"]; \n ");
+    int i=0;
+    int k=0;
+    int w=0;
+    if(con.noInodo>4){
+      con.noInodo=4;
+    }
+    for(i=0;i<con.noInodo;i++){
+     if(con.bloques[i]>50){
+    datos cons;
+    fseek(disco,con.bloques[i],SEEK_SET);
+    fread(&cons,sizeof(datos),1,disco);
+    sprintf(cosas2,"%d",con.bloques[i]);
+   strcat(auxiliatura,"node");
+     strcat(auxiliatura,cosas2);
+    strcat(auxiliatura," [label=\"");
+       char* pop=cons.data;
+    strcat(auxiliatura,cons.data);
+        strcat(auxiliatura,"\"]; \n");
+
+        char cosas4[25];
+         char cosas3[25];
+         sprintf(cosas4,"%d",i);
+        sprintf(cosas3,"%d",con.bloques[i]);
+        strcat(auxiliatura," node");
+        strcat(auxiliatura,cosas);
+        strcat(auxiliatura,":f");
+        strcat(auxiliatura,cosas4);
+        strcat(auxiliatura," -> node");
+        strcat(auxiliatura,cosas3);
+          strcat(auxiliatura,";\n");
+
+      }
+    }
+   if(con.indirecto>50){
+
+       inodo con2;
+       fseek(disco,con.indirecto,SEEK_SET);
+       fread(&con2,sizeof(inodo),1,disco);
+       char cosasa[25];
+       char cosas2b[25];
+       sprintf(cosasa,"%d",con.indirecto);
+      strcat(auxiliatura,"node");
+        strcat(auxiliatura,cosasa);
+        fclose(disco);
+       strcat(auxiliatura," [label=\"; inodo <p0>|<f0>|<f1>|<f2>|<f3>|<f4> \"]; \n ");
+       int ia=0;
+       int ka=0;
+       int wa=0;
+
+
+        char cosas34[25];
+       sprintf(cosas34,"%d",con.indirecto);
+       strcat(auxiliatura," node");
+       strcat(auxiliatura,cosas);
+       strcat(auxiliatura,":f4 -> node");
+       strcat(auxiliatura,cosas34);
+         strcat(auxiliatura,";");
+
+       for(ia=0;ia<con2.noInodo;ia++){
+        if(con2.bloques[ia]>50){
+       datos cons;
+      disco= fopen(aux4,"rb+");
+       fseek(disco,con2.bloques[ia],SEEK_SET);
+       fread(&cons,sizeof(datos),1,disco);
+       sprintf(cosas2b,"%d",con2.bloques[ia]);
+      strcat(auxiliatura,"node");
+        strcat(auxiliatura,cosas2b);
+       strcat(auxiliatura," [label=\"");
+       strcat(auxiliatura,cons.data);
+           strcat(auxiliatura,"\"]; \n");
+
+           char cosas4[25];
+            char cosas3[25];
+            sprintf(cosas4,"%d",ia);
+           sprintf(cosas3,"%d",con2.bloques[ia]);
+           strcat(auxiliatura," node");
+           strcat(auxiliatura,cosasa);
+           strcat(auxiliatura,":f");
+           strcat(auxiliatura,cosas4);
+           strcat(auxiliatura," -> node");
+           strcat(auxiliatura,cosas3);
+             strcat(auxiliatura,";\n");
+fclose(disco);
+         }
+       }
+
+
+
+   }
+   return auxiliatura;
+}
+
+char* completarTreeD1(char* ruta, char* mensaje, int posicion, char*path) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	avd arbol;
+	avd arbol2;
+	char* path2 = path;
+	fseek(archivo, posicion, SEEK_SET);
+	fread(&arbol, sizeof(avd), 1, archivo);
+
+	char cadena[10000];
+	char dato[25];
+	sprintf(dato, "%d", posicion);
+	strcpy(cadena, "node");
+	strcat(cadena, dato);
+	strcat(cadena, " [label=\" {<f0> ");
+	strcat(cadena, arbol.name);
+	strcat(cadena, "}|{<p0>|<p1>|<p2>|<p3>|<p4>|<p5>|<p6>|<p7>} \"]; \n");
+	strcat(cadena, mensaje);
+	int i = 0;
+
+	for (i = 0; i < 6; i++) {
+//		int mostrar2 = con.subDirectorios[i];
+		if (arbol.subDirectorios[i] > 0) {
+			fseek(archivo, arbol.subDirectorios[i], SEEK_SET);
+			fread(&arbol2, sizeof(avd), 1, archivo);
+			if (strcasecmp(arbol2.name, path) == 0) {
+				break;
+			}
+		}
+	}
+	fclose(archivo);
+	if (i < 6) {
+
+		path = strtok(NULL, "/");
+
+		char dato1[25];
+		char dato2[25];
+		sprintf(dato1, "%d", i);
+		sprintf(dato2, "%d", arbol.subDirectorios[i]);
+		strcat(cadena, " node");
+		strcat(cadena, dato);
+		strcat(cadena, ":p");
+		strcat(cadena, dato1);
+		strcat(cadena, " -> node");
+		strcat(cadena, dato2);
+		strcat(cadena, ":f0;");
+
+		if (path != NULL && path != 0x0) {
+			strcat(cadena,
+					completarTreeD1(ruta, " ", arbol.subDirectorios[i], path));
+		} else {
+
+			char cosas[25];
+			sprintf(cosas, "%d", arbol.subDirectorios[i]);
+			strcat(cadena, " node");
+			strcat(cadena, cosas);
+			strcat(cadena, " [label=\" {<f0> ");
+			strcat(cadena, path2);
+			strcat(cadena,
+					"}|{<p0>|<p1>|<p2>|<p3>|<p4>|<p5>|<p6>|<p7>} \"]; \n");
+
+			char cosas2[25];
+			char cosas3[25];
+			sprintf(cosas2, "%d", arbol2.directorio);
+			sprintf(cosas3, "%d", arbol.subDirectorios[i]);
+			strcat(cadena, " node");
+			strcat(cadena, cosas3);
+			strcat(cadena, ":p6");
+			strcat(cadena, " -> node");
+			strcat(cadena, cosas2);
+			strcat(cadena, ":f0;");
+		}
+		//	int loool = con.apuntadorAVD;
+	} else if (arbol.apuntadorAVD > 0) {
+		char cosas2[25];
+		char cosas3[25];
+		sprintf(cosas2, "%d", arbol.apuntadorAVD);
+		sprintf(cosas3, "%d", arbol.apuntadorAVD);
+		strcat(cadena, " node");
+		strcat(cadena, dato);
+		strcat(cadena, ":p7");
+		strcat(cadena, " -> node");
+		strcat(cadena, cosas3);
+		strcat(cadena, ":f0;");
+
+		strcat(cadena, completarTreeD1(ruta, " ", arbol.apuntadorAVD, path));
+	}
+
+	return cadena;
+}
+
+char* completarTreeD2(char*ruta, char* mensaje, int posicion) {
+	FILE* archivo;
+	archivo = fopen(ruta, "rb+");
+	detalle carp;
+	fseek(archivo, posicion, SEEK_SET);
+	fread(&carp, sizeof(detalle), 1, archivo);
+	char cadena[10000];
+	char dato[25];
+	sprintf(dato, "%d", posicion);
+	strcpy(cadena, "node");
+	strcat(cadena, dato);
+	strcat(cadena, " [label=\" {<f0> nombre} ");
+	int i = 0;
+
+	for (i = 0; i < 5; i++) {
+
+		if (carp.archivos[i].inodo > 1) {
+			strcat(cadena, "|{");
+			strcat(cadena, carp.archivos[i].name);
+			strcat(cadena, "}");
+		}
+	}
+	strcat(cadena, "\"]; \n");
+	fclose(archivo);
+	if (carp.detalle > 0) {
+		char dato1[25];
+		char dato2[25];
+		sprintf(dato1, "%d", i);
+		sprintf(dato2, "%d", carp.detalle);
+		strcat(cadena, " node");
+		strcat(cadena, dato);
+		strcat(cadena, " -> node");
+		strcat(cadena, dato2);
+		strcat(cadena, ";");
+		strcat(cadena, completarTreeD2(ruta, " ", carp.detalle));
+	}
+	return cadena;
+}
+
+
