@@ -211,7 +211,7 @@ void verificarComando(char *com, char *atributos) {
 				if (strcmp(inst, "+") == 0) {
 					mostrarMontadas();
 					bool = 1;
-					cont--;
+					cont=-2;
 				} else {
 					switch (cont) {
 					case 1:
@@ -226,7 +226,8 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		int i;
-		for (i = 1; i < cont - 1; i++) {
+		//printf("cont = %d\n",cont);
+		for (i = 1; i < cont; i++) {
 			if (i == 1) {
 				atributoDisco(com1);
 			} else if (i == 2) {
@@ -749,7 +750,7 @@ void verificarComando(char *com, char *atributos) {
 		//imprimirDatos();
 		//remover();
 
-	} else if (strcasecmp(com, "edit") == 0) {
+	} else if (strcasecmp(com, "ls") == 0) {
 		//	printf("editar\n");
 		char atr[200];
 		strcpy(atr, atributos);
@@ -799,50 +800,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//      	 imprimirDatos();
-		// printf("****");
-//		editar();
-
-	} else if (strcasecmp(com, "ren") == 0) {
-		//         printf("renombrar\n");
-		char atr[200];
-		strcpy(atr, atributos);
-		int j;
-		for (j = 0; j < 200; j++) {
-			if (atr[j] == '\\') {
-				atr[j] = ' ';
-			}
-		}
-		strcpy(atributos, atr);
-		char aux[100];
-		strcpy(aux, atributos);
-		inst = strtok(atributos, " ");
-		while (inst != NULL) {
-			inst = strtok(NULL, " ");
-			switch (cont) {
-			case 1:
-				com1 = inst;
-				break;
-			case 2:
-				com2 = inst;
-				break;
-			case 3:
-				com3 = inst;
-				break;
-			}
-			cont++;
-		}
-		int i;
-		for (i = 1; i < cont - 1; i++) {
-			if (i == 1) {
-				atributoDisco(com1);
-			} else if (i == 2) {
-				atributoDisco(com2);
-			} else if (i == 3) {
-				atributoDisco(com3);
-			}
-		}
-		// imprimirDatos();
-		//renombrar();
+		listar();
 
 	} else if (strcasecmp(com, "mkdir") == 0) {
 		//   printf("crear carpeta\n");

@@ -40,5 +40,11 @@ int  reporteINODE(char* id, char* name, char* path);
 int  reporteBLOQUE(char* id, char* name, char* path);
 
 int  reporteTREE_COMPLETE(char* id, char* name, char* path);
+////////////
+
+int   encontrarArchivo2(char* id,char* path, char* name, char* perm, char* user);
+char* buscarCarpeta2(char* ruta,char* path, superbloque super,int posicion,char* msj, int espacio);
+int   buscarRaizCarpeta2(char* ruta,superbloque super, int posicion,char* mensaje,int espacio);
+int   buscarRaizArchivo2(char* ruta,superbloque super,int posicion,char*mensaje,int espacio);
 
 #endif /* REPORTES_H_ */

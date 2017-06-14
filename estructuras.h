@@ -95,7 +95,9 @@ typedef struct SUPERBLOQUE {
 	detalleSB s;
 } superbloque;
 
-
+typedef struct LIST{
+	char nombre[20];
+}list;
 
 typedef struct MONTAR { //Cola para realizar el mount
 	char path[70];

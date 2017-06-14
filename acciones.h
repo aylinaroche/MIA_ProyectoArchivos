@@ -87,7 +87,6 @@ int   encontrarArchivo(char* id,char* path, char* name, char* perm, char* user);
 char* buscarCarpeta(char* ruta,char* path, superbloque super,int posicion,char* msj, int espacio);
 int   buscarRaizCarpeta(char* ruta,superbloque super, int posicion,char* mensaje,int espacio);
 int   buscarRaizArchivo(char* ruta,superbloque super,int posicion,char*mensaje,int espacio);
-int   buscarRaizArchivo(char* ruta,superbloque super,int posicion,char* mensaje,int espacio);
 void  crearDirectorio();
 int   crearDirectorioArchivo(char* id, char* path, char* p);
 void  editar();
@@ -95,8 +94,13 @@ void  mover();
 int   moverArchivo(char* id, char* path, char* dest, char* iddest);
 superbloque crearBloque();
 
+void listar();
+int  listarArchivo(char* id,char* path, char* name);
+void imprimirLista();
+
 int  boolExec;
 mount montar[50];
+list listaArchivo[10];
 
 
 #endif /* ACCIONES_H_ */
