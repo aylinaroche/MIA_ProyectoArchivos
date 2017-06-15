@@ -42,24 +42,14 @@ int  ejecutarScript(char *path);
 void atributoExec(char* coman);
 char *numeroMontar(int num);
 void mostrarMontadas();
-int AgregarArch(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
-
-/////////////////////////////////////////////////////////////////////////////////////
-
-void espacioLibre();
-int  verEspacioLibre(char* id, char* path,int K, int M, int H, int I);
-void espacioUsado();
-int  verEspacioUsado(char *id,char *path, char* n,int boolH);
+int  agregarArchivo(int posicion,superbloque super, char* aux4, char* name,char ajuste, char* contenido, int size);
 void formatear();
 int  formatearDisco(char* id, char* type, char* add, char* unit, char* fs);
 //////////////////////////////////////
 void crearArchivo();
 int  crearArchivoParticion(char* id,char* path,char* p,char* size,char* cont);
 int  agregarContenido(int posicion,superbloque super, char* ruta, char* name,char ajuste, char* contenido, int siz);
-int  crearCarpeta(char* ruta,superbloque super,avd apun,char*path,char*p,char ajuste, int inicio, int atras);
-void permiso();
-int  permisoArchivo(char* id,char* path,char* ugo, char* R);
-int  cambiarPermiso(int posicion,superbloque super, char* ruta, char* nombre, char* permiso,int opcion);
+int  crearCarpeta(char* ruta,superbloque super,apunt apun,char*path,char*p,char ajuste, int inicio, int atras);
 void mostrarContenido();
 int  mostrarContenidoArchivo(char* id, char* filen);
 void remover();
@@ -67,7 +57,7 @@ int  removerArchivo(char* id,char* path, int rf);
 int  eliminarArchivo(int posicion,superbloque super, char* ruta, char* name);
 int  eliminarCarpeta(char* ruta,superbloque super,char* path,int posicion);
 int  bitacora(int posicion, int operacion, char*nombre, char*contenido, superbloque super, char* ruta,char* vdID);
-int  buscarArchivo(char* ruta,superbloque super,avd ap,char* path,char ajuste, int inicio, int atras);
+int  buscarArchivo(char* ruta,superbloque super,apunt ap,char* path,char ajuste, int inicio, int atras);
 int  primerAjuste(int bloque,char* ruta, int inicio, int archivo);
 int  mejorAjuste(int bloque,char* ruta, int inicio, int archivo);
 int  peorAjuste(int bloque, char *aux4, int inicio, int archivo);
@@ -97,6 +87,11 @@ superbloque crearBloque();
 void listar();
 int  listarArchivo(char* id,char* path, char* name);
 void imprimirLista();
+void journaling(char *ruta, int posicion, superbloque sb, int tipoOp, char *path, char *contenido, char *id, int tipo) ;
+char *generarPath(char *path);
+char *concatenar(char* var1, char* var2);
+char *obtenerNombre(char *path);
+char *obtenerRuta(char *id);
 
 int  boolExec;
 mount montar[50];

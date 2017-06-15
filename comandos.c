@@ -28,7 +28,11 @@ void verificarComando(char *com, char *atributos) {
 	char* inst = NULL;
 	int cont = 1;
 	if (strcasecmp(com, "prueba") == 0) {
-		//metodoPrueba();
+		char *r1 ="/home/tanya/workspaceNeon/ProyectoArchivos/Disco1.dsk";
+		char *r2 ="/home/tanya/workspaceNeon/ProyectoArchivos/CopyDisco1.dsk";
+		copy_file(r1,r2);
+		printf("prueba\n");
+
 	}
 	if (strcasecmp(com, "mkdisk") == 0 || strcasecmp(com, "Mkdisk") == 0
 			|| strcasecmp(com, "MKDISK") == 0
@@ -211,7 +215,7 @@ void verificarComando(char *com, char *atributos) {
 				if (strcmp(inst, "+") == 0) {
 					mostrarMontadas();
 					bool = 1;
-					cont=-2;
+					cont = -2;
 				} else {
 					switch (cont) {
 					case 1:
@@ -936,7 +940,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//imprimirDatos();
-//		mover();
+		mover();
 
 	} else if (strcasecmp(com, "find") == 0) {
 		//	printf("find \n");

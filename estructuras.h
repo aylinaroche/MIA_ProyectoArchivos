@@ -8,26 +8,31 @@
 #ifndef ESTRUCTURAS_H_
 #define ESTRUCTURAS_H_
 
+//BLOQUE DE CARPETAS
+
 typedef struct ARCHIVO { //archivo //content
 	char name[12];
 	int inodo;
 } archivo;
 
+typedef struct CARPETA { //*detalle
+	archivo content[4]; //16  //archivo
+	int detalle; //Si ya no caben apunta a otro detalle
+} detalle;
+
+//BLOQUE DE ARCHIVOS
+
 typedef struct APUNTADOR { //av
-	char name[16]; //point
+	char pointer[16]; //name
 	int subDirectorios[6];
 	int directorio;
 	int apuntadorAVD;
-} avd;
+} apunt;
 
 typedef struct DATOS { //bloque de archivos
-	char data[64];
+	char data[64]; //content
 } datos;
 
-typedef struct CARPETA { //*detalle
-	archivo archivos[4]; //16  //contenido
-	int detalle; //Si ya no caben apunta a otro detalle
-} detalle;
 
 typedef struct INODO {
 	int noInodo;
@@ -51,28 +56,28 @@ typedef struct JOURNAL {
 	char contenido[50];
 	time_t fecha;
 	char vdID[5];
-//
-	char propietario[50];
-	char permisos[50];
+	char padre[50];
+	int tamanio;
 } journal;
 
 typedef struct DETALLE_SP { //Cola para realizar el mount
 	int arbolVirtualCount;//
 	int detalleDirectorioCount;
 	int apuntadorBitArbolDirectorio;//
-	int apuntadorAVD;//********
+	int apuntador;//********
 	int apuntadorBitDetalleDirectorio; //
 	int apuntadorDetalleDirectorio;//
 	int apuntadorBitmapInodo; //
-	int apuntadorLog;//
+	int contadorJ;
 } detalleSB;
 
+typedef struct JOURN{
+	journal bitacora;
+}journ;
 
 typedef struct SUPERBLOQUE {
 	int inodosCount; //
 	int bloquesCount; //
-	//int freeArbolCount;
-	//int freeDetalleDirectorioCount;
 	int freeBloquesCount; //
 	int freeInodosCount; //
 	time_t FechaMontado; //
@@ -82,16 +87,13 @@ typedef struct SUPERBLOQUE {
 	int apuntadorTablaInodo;	//
 	int apuntadorBitBloques;	//
 	int apuntadorBloques;	//
-	//int arbolDirectorioSize;
-	//int detalleDirectorioSize;
 	int inodoSize; //
 	int bloqueSize; //
-	//int firstFreeBitArbol;
-	//int firstFreeBitDetalleDirectorio;
 	int firstFreeBitTablaInodo;	//
 	int firstFreeBitBloque;	//
 	int magic; //
-	//int apuntadorCopia;//
+	int jourfirst;//
+	journ j[50];
 	detalleSB s;
 } superbloque;
 

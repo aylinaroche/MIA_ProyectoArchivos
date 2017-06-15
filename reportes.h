@@ -35,10 +35,8 @@ char* completarTreeF1(char* ruta, char* mensaje, int posicion, char* path);
 int  reporteTREE_F(char* id, char* name, char* path, char* ruta) ;
 char* LlenarReporteFile(char*aux4,char*mensaje,int posicion,char*path1);
 char* LlenarReporteFile2(char*aux4,char*mensaje,int posicion);
-
 int  reporteINODE(char* id, char* name, char* path);
 int  reporteBLOQUE(char* id, char* name, char* path);
-
 int  reporteTREE_COMPLETE(char* id, char* name, char* path);
 ////////////
 
@@ -47,4 +45,5 @@ char* buscarCarpeta2(char* ruta,char* path, superbloque super,int posicion,char*
 int   buscarRaizCarpeta2(char* ruta,superbloque super, int posicion,char* mensaje,int espacio);
 int   buscarRaizArchivo2(char* ruta,superbloque super,int posicion,char*mensaje,int espacio);
 
+int reporteJOURNALING(char* name, char* path, char* id);
 #endif /* REPORTES_H_ */
