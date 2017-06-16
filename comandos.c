@@ -29,8 +29,8 @@ void verificarComando(char *com, char *atributos) {
 	int cont = 1;
 	if (strcasecmp(com, "prueba") == 0) {
 		char *r1 ="/home/tanya/workspaceNeon/ProyectoArchivos/Disco1.dsk";
-		char *r2 ="/home/tanya/workspaceNeon/ProyectoArchivos/CopyDisco1.dsk";
-		copy_file(r1,r2);
+		char *r2 ="/home/tanya/workspaceNeon/ProyectoArchivos/prueba.dsk";
+		copiarFichero(r1,r2);
 		printf("prueba\n");
 
 	}
@@ -81,7 +81,8 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		// imprimirDatos();
-		crearDisco();
+		crearDisco(1);
+		//crearDisco(2);
 
 	} else if (strcasecmp(com, "rmdisk") == 0 || strcasecmp(com, "Rmdisk") == 0
 			|| strcasecmp(com, "RMdisk") == 0
@@ -1025,6 +1026,7 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 		//imprimirDatos();
+		recovery();
 
 	} else if (strcasecmp(com, "loss") == 0) {
 		//     printf("Perdida\n");
@@ -1056,7 +1058,9 @@ void verificarComando(char *com, char *atributos) {
 			}
 		}
 //		imprimirDatos();
+		loss();
 
 	}
+	//actualizar();
 
 }

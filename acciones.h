@@ -16,9 +16,8 @@
 #include "estructuras.h"
 
 void atributoDisco(char* coman);
-void crearDisco();
+void crearDisco(int n);
 int  crearArchivoBinario(char* size, char* path, char* nom);
-int  copy_file(char* f_org,char* f_dest);
 int  multiploDeOcho(int tam);
 void imprimirDatos();
 void limpiarVariables();
@@ -92,6 +91,10 @@ char *generarPath(char *path);
 char *concatenar(char* var1, char* var2);
 char *obtenerNombre(char *path);
 char *obtenerRuta(char *id);
+void loss();
+void recovery();
+void copiarFichero(char *origen, char *destino);
+char *obtenerPadre(char *ruta);
 
 int  boolExec;
 mount montar[50];

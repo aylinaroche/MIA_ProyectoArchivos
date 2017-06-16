@@ -28,14 +28,14 @@ int reporteDISK(char* id, char* name, char* path) {
 	int i = 0;
 	for (i = 0; i < 30; i++) {
 		if (montar[i].vdID != NULL) {
-			// printf("\nM%d = %s\n",i,montar[i].vdID);
-			//if/(montar[i].id[2]==nombre[2] &&  montar[i].disco==numID && montar[i].estado=='1'){
 			if (strcasecmp(montar[i].vdID, id) == 0) {
-				printf("-> Se ha encontrado una particion con el id.\n");
+				if (montar[i].loss == 1) {
+					printf("ERROR: Existe un fallo en el disco.\n");
+					return 0;
+				}
+				//printf("-> Se ha encontrado una particion con el id.\n");
 				boolIgual = 1;
-				//ruta = montar[i].path; //%%%
 				nom = montar[i].name;
-
 			}
 			if (boolIgual == 1) {
 				if (montar[i].estado == 1) {
@@ -244,7 +244,10 @@ int reporteMBR(char* id, char* name, char* path) {
 	for (i = 0; i < 51; i++) {
 		if (montar[i].vdID != NULL) {
 			if (strcasecmp(montar[i].vdID, id) == 0) {
-				printf("-> Se ha encontrado una particion con el id.\n");
+				if (montar[i].loss == 1) {
+					printf("ERROR: Existe un fallo en el disco.\n");
+					return 0;
+				}
 				boolIgual = 1;
 			}
 			if (boolIgual == 1) {
@@ -454,6 +457,10 @@ int reporteBITMAP_INODO(char* name, char* path, char* id) {
 			//	printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombre = montar[i].name;
 					break;
@@ -659,6 +666,10 @@ int reporteBITMAP_BLOQUE(char* name, char* path, char* id) {
 			//	printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombre = montar[i].name;
 					break;
@@ -866,6 +877,10 @@ int reporteSB(char* name, char* path, char* id) {
 			//	printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombre = montar[i].name;
 					break;
@@ -1080,7 +1095,10 @@ int reporteINODO(char* id, char* name, char* path) {
 	for (i = 0; i < 51; i++) {
 		if (montar[i].vdID != NULL) {
 			if (strcasecmp(montar[i].vdID, id) == 0) {
-				printf("-> Se ha encontrado una particion con el id.\n");
+				if (montar[i].loss == 1) {
+					printf("ERROR: Existe un fallo en el disco.\n");
+					return 0;
+				}
 				boolIgual = 1;
 			}
 			if (boolIgual == 1) {
@@ -1297,10 +1315,10 @@ char* completarINODO(char* ruta, char* mensaje, int posicion) {
 
 		}
 	}
-	if (arbol.apuntadorAVD > 0) {
+	if (arbol.apuntador > 0) {
 		apunt arbol3;
 		archivo = fopen(ruta, "rb+");
-		fseek(archivo, arbol.apuntadorAVD, SEEK_SET);
+		fseek(archivo, arbol.apuntador, SEEK_SET);
 		fread(&arbol3, sizeof(apunt), 1, archivo);
 		fclose(archivo);
 		char p[100];
@@ -1308,8 +1326,8 @@ char* completarINODO(char* ruta, char* mensaje, int posicion) {
 		if (strcasecmp(arbol3.pointer, arbol.pointer) == 0) {
 			char aux[25];
 			char apunt[25];
-			sprintf(aux, "%d", arbol.apuntadorAVD);
-			sprintf(apunt, "%d", arbol.apuntadorAVD);
+			sprintf(aux, "%d", arbol.apuntador);
+			sprintf(apunt, "%d", arbol.apuntador);
 			strcat(cadena, " node");
 			strcat(cadena, dato);
 			strcat(cadena, ":p7");
@@ -1317,7 +1335,7 @@ char* completarINODO(char* ruta, char* mensaje, int posicion) {
 			strcat(cadena, apunt);
 			strcat(cadena, ":f0;");
 
-			strcat(cadena, completarDIRECTORIO(ruta, " ", arbol.apuntadorAVD));
+			strcat(cadena, completarDIRECTORIO(ruta, " ", arbol.apuntador));
 		}
 	}
 	return cadena;
@@ -1365,10 +1383,10 @@ char* completarDIRECTORIO(char* ruta, char* mensaje, int posicion) {
 
 		}
 	}
-	if (arbol.apuntadorAVD > 0) {
+	if (arbol.apuntador > 0) {
 		apunt arbol3;
 		archivo = fopen(ruta, "rb+");
-		fseek(archivo, arbol.apuntadorAVD, SEEK_SET);
+		fseek(archivo, arbol.apuntador, SEEK_SET);
 		fread(&arbol3, sizeof(apunt), 1, archivo);
 		fclose(archivo);
 		char p[100];
@@ -1376,8 +1394,8 @@ char* completarDIRECTORIO(char* ruta, char* mensaje, int posicion) {
 		if (strcasecmp(arbol3.pointer, arbol.pointer) == 0) {
 			char aux[25];
 			char apunt[25];
-			sprintf(aux, "%d", arbol.apuntadorAVD);
-			sprintf(apunt, "%d", arbol.apuntadorAVD);
+			sprintf(aux, "%d", arbol.apuntador);
+			sprintf(apunt, "%d", arbol.apuntador);
 			strcat(cadena, " node");
 			strcat(cadena, dato);
 			strcat(cadena, ":p7");
@@ -1385,7 +1403,7 @@ char* completarDIRECTORIO(char* ruta, char* mensaje, int posicion) {
 			strcat(cadena, apunt);
 			strcat(cadena, ":f0;");
 
-			strcat(cadena, completarDIRECTORIO(ruta, " ", arbol.apuntadorAVD));
+			strcat(cadena, completarDIRECTORIO(ruta, " ", arbol.apuntador));
 		}
 	}
 	return cadena;
@@ -1613,6 +1631,10 @@ int reporteFILE(char* name, char* path, char* id, char* filen) {
 			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombre = montar[i].name;
 					break;
@@ -1796,15 +1818,16 @@ int reporteTREE_FILE(char* id, char* name, char* path, char* ruta) {
 	for (i = 0; i < 31; i++) {
 		if (montar[i].vdID != NULL) {
 			if (strcasecmp(montar[i].vdID, id) == 0) {
-				printf("-> Se ha encontrado una particion con el id.\n");
-				boolIgual = 1;
-			}
-			if (boolIgual == 1) {
 				if (montar[i].estado == 1) {
-					direcc = montar[i].path;
-					nombres = montar[i].name;
-					break;
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 				}
+				direcc = montar[i].path;
+				nombres = montar[i].name;
+				break;
+
 			}
 		}
 	}
@@ -1961,8 +1984,7 @@ int reporteTREE_FILE(char* id, char* name, char* path, char* ruta) {
 
 		apunt con;
 		int info3;
-		info3 = buscarArchivo(direcc, sb, con, path1, "w", 0,
-				sb.s.apuntador);
+		info3 = buscarArchivo(direcc, sb, con, path1, "w", 0, sb.s.apuntador);
 		if (info3 > 10) {
 
 //CREA EL REPORTE
@@ -1975,8 +1997,7 @@ int reporteTREE_FILE(char* id, char* name, char* path, char* ruta) {
 					"UBUNTU");
 			char* au = verificar2;
 			//path1 = strtok(au, "/");
-			fprintf(report,
-					completarTreeD1(direcc, "", sb.s.apuntador, path1));
+			fprintf(report, completarTreeD1(direcc, "", sb.s.apuntador, path1));
 			au = crear;
 			path1 = strtok(au, "/");
 //			while ((strstr(path1, ".") == 0x0 || strstr(path1, ".") == ""
@@ -2027,9 +2048,12 @@ int reporteTREE_F(char* id, char* name, char* path, char* filen) {
 	int i = 0;
 	for (i = 0; i < 31; i++) {
 		if (montar[i].vdID != NULL) {
-			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombres = montar[i].name;
 					break;
@@ -2212,8 +2236,7 @@ int reporteTREE_F(char* id, char* name, char* path, char* filen) {
 			char* au = verificar2;
 			ruta2 = strtok(au, "/");
 			printf("holi\n");
-			fprintf(report,
-					completarTreeD1(ruta, "", sb.s.apuntador, ruta2));
+			fprintf(report, completarTreeD1(ruta, "", sb.s.apuntador, ruta2));
 			//au = crear;
 			ruta2 = strtok(crear, "/");
 			//while ((strstr(ruta2, ".") == 0x0 || strstr(ruta2, ".") == "") && ruta2 != NULL) {
@@ -2495,11 +2518,11 @@ char* completarTreeD1(char* ruta, char* mensaje, int posicion, char* path) {
 			strcat(cadena, ":f0;");
 		}
 		//	int loool = con.apuntadorAVD;
-	} else if (arbol.apuntadorAVD > 0) {
+	} else if (arbol.apuntador > 0) {
 		char cosas2[25];
 		char cosas3[25];
-		sprintf(cosas2, "%d", arbol.apuntadorAVD);
-		sprintf(cosas3, "%d", arbol.apuntadorAVD);
+		sprintf(cosas2, "%d", arbol.apuntador);
+		sprintf(cosas3, "%d", arbol.apuntador);
 		strcat(cadena, " node");
 		strcat(cadena, dato);
 		strcat(cadena, ":p7");
@@ -2507,7 +2530,7 @@ char* completarTreeD1(char* ruta, char* mensaje, int posicion, char* path) {
 		strcat(cadena, cosas3);
 		strcat(cadena, ":f0;");
 
-		strcat(cadena, completarTreeD1(ruta, " ", arbol.apuntadorAVD, path));
+		strcat(cadena, completarTreeD1(ruta, " ", arbol.apuntador, path));
 	}
 
 	return cadena;
@@ -2747,12 +2770,12 @@ char* buscarCarpeta2(char* ruta, char* path, superbloque super, int posicion,
 			return buscarRaizCarpeta2(ruta, super, a, mensaje, espacio + 2);
 		}
 	} else {
-		if (ap.apuntadorAVD < 1) {
+		if (ap.apuntador < 1) {
 			printf("ERROR: No existe la carpeta indicada.\n");
 			return "";
 		} else {
 			fclose(archivo);
-			int p = ap.apuntadorAVD;
+			int p = ap.apuntador;
 			return buscarCarpeta2(ruta, path, super, p, mensaje, espacio);
 		}
 	}
@@ -2815,8 +2838,8 @@ int buscarRaizCarpeta2(char* ruta, superbloque super, int posicion,
 	if (ap.directorio > 100) {
 		buscarRaizArchivo2(ruta, super, ap.directorio, mensaje, espacio + 2);
 	}
-	if (ap.apuntadorAVD > 100) {
-		buscarRaizCarpeta2(ruta, super, ap.apuntadorAVD, mensaje, espacio);
+	if (ap.apuntador > 100) {
+		buscarRaizCarpeta2(ruta, super, ap.apuntador, mensaje, espacio);
 	}
 }
 
@@ -2911,9 +2934,12 @@ int reporteJOURNALING(char* name, char* path, char* id) {
 	int i = 0;
 	for (i = 0; i < 31; i++) {
 		if (montar[i].vdID != NULL) {
-			//printf("NOT NULL -> %s-%s-\n",montar[i].vdID,id);
 			if (strcasecmp(montar[i].vdID, id) == 0) {
 				if (montar[i].estado == 1) {
+					if (montar[i].loss == 1) {
+						printf("ERROR: Existe un fallo en el disco.\n");
+						return 0;
+					}
 					ruta = montar[i].path; //%%%
 					nombre = montar[i].name;
 					break;
@@ -3015,12 +3041,12 @@ int reporteJOURNALING(char* name, char* path, char* id) {
 		FILE* reporte;
 		reporte = fopen(path, "w+");
 		int b = 0;
-		printf("Contador J = %d\n",sb.s.contadorJ);
+		printf("Contador J = %d\n", sb.s.contadorJ);
 		for (b = 0; b < sb.s.contadorJ; b++) {
-		journal bitacora = sb.j[b].bitacora;
+			journal bitacora = sb.j[b].bitacora;
 //printf("a");
-		int cont = 0;
-		//while (bitacora.tipo > 0) { //MIENTRAS SEA CARPETA
+			int cont = 0;
+			//while (bitacora.tipo > 0) { //MIENTRAS SEA CARPETA
 			cont += 1;
 			char operacion[100];
 			char tipoOperacion[100];
@@ -3061,13 +3087,13 @@ int reporteJOURNALING(char* name, char* path, char* id) {
 			strftime(fecha, 100, "%c", timeinfo);
 
 			fprintf(reporte,
-					"OPERACION: \"%s\" \n TIPO: \"%s\" \n NOMBRE : \"%s\" \n CONTENIDO: \"%s\" \n FECHA: \"%s\" \n ",
+					" OPERACION: \"%s\" \n TIPO: \"%s\" \n NOMBRE : \"%s\" \n CONTENIDO: \"%s\" \n  PADRE: \"%s\"  \n TAMANIO: \"%d\" \n FECHA: \"%s\" \n",
 					operacion, tipoOperacion, bitacora.nombre,
-					bitacora.contenido, asctime(timeinfo));
+					bitacora.contenido,bitacora.padre,bitacora.tamanio, asctime(timeinfo));
 
 			fprintf(reporte, "\n");
 			//if(cont==19){
-				///break;
+			///break;
 			//}
 			bitacora = sb.j[cont].bitacora;
 		}

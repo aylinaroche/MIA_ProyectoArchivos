@@ -26,7 +26,7 @@ typedef struct APUNTADOR { //av
 	char pointer[16]; //name
 	int subDirectorios[6];
 	int directorio;
-	int apuntadorAVD;
+	int apuntador;
 } apunt;
 
 typedef struct DATOS { //bloque de archivos
@@ -53,7 +53,7 @@ typedef struct JOURNAL {
 	int operacion;
 	int tipo; //0 archivo / 1 directorio
 	char nombre[50];
-	char contenido[50];
+	char contenido[64];
 	time_t fecha;
 	char vdID[5];
 	char padre[50];
@@ -109,6 +109,7 @@ typedef struct MONTAR { //Cola para realizar el mount
 	char *vdID;
 	int estado;
 	int uso;
+	int loss;
 } mount;
 
 typedef struct EBR { //20 maximo
