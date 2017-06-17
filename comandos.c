@@ -1061,6 +1061,6 @@ void verificarComando(char *com, char *atributos) {
 		loss();
 
 	}
-	//actualizar();
+	actualizar();
 
 }

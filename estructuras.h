@@ -53,6 +53,7 @@ typedef struct JOURNAL {
 	int operacion;
 	int tipo; //0 archivo / 1 directorio
 	char nombre[50];
+	char path[200];
 	char contenido[64];
 	time_t fecha;
 	char vdID[5];

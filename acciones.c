@@ -452,16 +452,14 @@ void crearDisco(int num) {
 				fclose(archivo);
 				copiarFichero(path, recovery);
 
-////				//Copy
-//				char *nombre = concatenar(pathNuevo, name);
-//				name = concatenar("Copy", name);
-//				path = concatenar(pathNuevo, name);
-//				//char *ruta = concatenar(path, name);
-//				copiarFichero(nombre, path);
+				//Copy
+				char *nombre = concatenar(pathNuevo, name);
+				name = concatenar("Copy", name);
+				path = concatenar(pathNuevo, name);
+				copiarFichero(nombre, path);
 				printf("/");
-				//strcpy(path, pathNuevo);
+				strcpy(path, pathNuevo);
 			}
-//crearArchivoBinario(size, pathNuevo, nombre);
 			printf("/\n");
 		} else {
 			printf("ERROR: El tamanio es incorrecto.\n");
@@ -628,7 +626,9 @@ char *generarPath(char *direccion) {
 		datos[cont] = inst;
 	}
 	char *d = "/";
-	char *rutaNueva = "/";
+	char *rutaNueva = (char *) malloc(1 + strlen(aux) + strlen("copy"));
+	rutaNueva = "/";
+
 	int i = 0;
 	for (i = 0; i < cont - 1; i++) {
 		char *c1 = concatenar(datos[i], d);
@@ -636,6 +636,8 @@ char *generarPath(char *direccion) {
 	}
 	rutaNueva = concatenar(rutaNueva, "Copy");
 	rutaNueva = concatenar(rutaNueva, datos[cont - 1]);
+	//rutaNueva=concatenar("/",rutaNueva);
+
 	//printf("RUTA = %s\n", rutaNueva);
 	strcpy(direccion, aux);
 	return rutaNueva;
@@ -774,11 +776,11 @@ void adminParticion() {
 	char *recovery = concatenar("/home/tanya/workspaceNeon/recovery/recovery",
 			nombre);
 	copiarFichero(pathAux, recovery);
-//	//Copy
-//	char pathAux2[100];
-//	strcpy(pathAux2, pathAux);
-//	char *ruta = generarPath(pathAux);
-//	copiarFichero(pathAux2, ruta);
+	//Copy
+	char pathAux2[100];
+	strcpy(pathAux2, pathAux);
+	char *ruta = generarPath(pathAux);
+	copiarFichero(pathAux2, ruta);
 }
 
 int crearParticion(char* path, char* name, char* size, char* unit, char* type,
@@ -1830,22 +1832,23 @@ void formatear() {
 			setbuf(stdin, NULL);
 			fflush(NULL);
 		}
-		//Recover
-		char *ruta = obtenerRuta(id);
+
+//		//Recover :: No se actualiza
+		path = obtenerRuta(id);
 		char pathAux[100];
-		strcpy(pathAux, ruta);
-		char *nombre = obtenerNombre(ruta);
+		strcpy(pathAux, path);
+		char *nombre = obtenerNombre(path);
 		char *recovery = concatenar(
 				"/home/tanya/workspaceNeon/recovery/recovery", nombre);
-		copiarFichero(pathAux, recovery);
-
+//		copiarFichero(pathAux, recovery);
+		strcpy(path, pathAux);
 		//Copy
 		char pathAux2[100];
-		strcpy(pathAux2, pathAux);
-		char *ruta2 = generarPath(pathAux);
-		copiarFichero(pathAux2, ruta2);
+		strcpy(pathAux2, path);
+		ruta = generarPath(path);
+		copiarFichero(pathAux2, ruta);
 
-		strcpy(pathAux, pathAux2);
+		strcpy(path, pathAux2);
 		strcpy(ruta, pathAux2);
 
 	}
@@ -2275,7 +2278,7 @@ int crearArchivoParticion(char* id, char* path, char* p, char* size, char* cont)
 					//bitacora(sb.s.apuntadorLog, 1, path, leer, sb, ruta, id);
 					journaling(ruta, posicion, sb, 1, path, leer, id, 0);
 				} else {
-					rutaC = "/home/aylin/vacio.txt";
+					//rutaC = "/home/tanya/Documentos/vacio.txt";
 					agregarContenido(datos, sb, ruta, rutaC, ajuste, leer,
 							tamanio);
 				}
@@ -4005,18 +4008,7 @@ int crearDirectorioArchivo(char* id, char* path, char* p) {
 		}
 		//bitacora(sb.jourfirst, 6, path, " ", sb, ruta, id);
 		journaling(ruta, posicion, sb, 6, path, "", id, 1);
-		/*fseek(archivo, posicion, SEEK_SET);
-
-		 printf("Contador = %d\n", sb.s.contadorJ);
-		 sb.j[sb.s.contadorJ].bitacora.tipo = 6;
-		 sb.j[sb.s.contadorJ].bitacora.fecha = time(0);
-		 strcpy(sb.j[sb.s.contadorJ].bitacora.vdID, id);
-		 strcpy(sb.j[sb.s.contadorJ].bitacora.nombre, path);
-		 strcpy(sb.j[sb.s.contadorJ].bitacora.contenido, "");
-		 sb.s.contadorJ++;
-		 fwrite(&sb, sizeof(superbloque), 1, archivo);
-		 fclose(archivo);
-		 */
+		return 1;
 	} else {
 		printf("No ha formateado la particion");
 		return 0;
@@ -5056,7 +5048,7 @@ int bitacora(int posicion, int operacion, char* nombre, char* contenido,
 
 void journaling(char *ruta, int posicion, superbloque sb, int ope, char *path,
 		char *contenido, char *id, int tipo) {
-	printf("Pos =%d\n", posicion);
+	printf("Posicion = %d - Path = %s - ", posicion, path);
 	FILE* archivo;
 	archivo = fopen(ruta, "rb+");
 	if (archivo == NULL) {
@@ -5076,6 +5068,7 @@ void journaling(char *ruta, int posicion, superbloque sb, int ope, char *path,
 		sb.j[sb.s.contadorJ].bitacora.operacion = ope;
 		sb.j[sb.s.contadorJ].bitacora.fecha = time(0);
 		strcpy(sb.j[sb.s.contadorJ].bitacora.vdID, id);
+		strcpy(sb.j[sb.s.contadorJ].bitacora.path, path);
 		strcpy(sb.j[sb.s.contadorJ].bitacora.nombre, obtenerNombre(path));
 		strcpy(path, pathAux);
 		strcpy(sb.j[sb.s.contadorJ].bitacora.padre, obtenerPadre(path));
@@ -5110,6 +5103,7 @@ void journaling(char *ruta, int posicion, superbloque sb, int ope, char *path,
 			sb.j[sb.s.contadorJ].bitacora.fecha = time(0);
 			sb.j[sb.s.contadorJ].bitacora.tamanio = j;
 			strcpy(sb.j[sb.s.contadorJ].bitacora.vdID, id);
+			strcpy(sb.j[sb.s.contadorJ].bitacora.path, path);
 			strcpy(sb.j[sb.s.contadorJ].bitacora.nombre, obtenerNombre(path));
 			strcpy(path, pathAux);
 			strcpy(sb.j[sb.s.contadorJ].bitacora.padre, obtenerPadre(path));
@@ -5126,7 +5120,7 @@ void journaling(char *ruta, int posicion, superbloque sb, int ope, char *path,
 void actualizar() {
 
 	if (id != NULL) {
-		printf("Actualizar %s\n", id);
+		//	printf("Actualizar %s\n", id);
 		char *ruta1 = obtenerRuta(id);
 		if (ruta1 != NULL) {
 			char rutaAux[200];
@@ -5223,16 +5217,10 @@ void recovery() {
 			return;
 		}
 		superbloque sb;
-		char ajuste;
-		int posicion;
 		if (esLogica == 1) {
-			posicion = structDisco.part[i].exten[j].start;
-			ajuste = structDisco.part[i].exten[j].fit;
 			fseek(archivo, structDisco.part[i].exten[j].start, SEEK_SET);
 			fread(&sb, sizeof(superbloque), 1, archivo);
 		} else {
-			posicion = structDisco.part[i].start;
-			ajuste = structDisco.part[i].fit;
 			fseek(archivo, structDisco.part[i].start, SEEK_SET);
 			fread(&sb, sizeof(superbloque), 1, archivo);
 		}
@@ -5244,7 +5232,6 @@ void recovery() {
 		strcpy(ruta, rutaAux);
 		char *recovery = concatenar(
 				"/home/tanya/workspaceNeon/recovery/recovery", nameR);
-
 		copiarFichero(ruta, recovery);
 		formatearDisco(id, "full", "", "k", "");
 
@@ -5264,7 +5251,7 @@ void recovery() {
 				//moverArchivo(bitacora.vdID,bitacora.nombre,"","")''
 			} else if (bitacora.operacion == 6) { // mkdir
 				char p[100] = "";
-				strcpy(p, bitacora.nombre);
+				strcpy(p, bitacora.path);
 				crearDirectorioArchivo(bitacora.vdID, p, "p");
 			} else {
 				//strcpy(operacion, "formatear");
@@ -5276,11 +5263,21 @@ void recovery() {
 }
 
 void copiarFichero(char *origen, char *destino) {
-	char *cadena = concatenar("cp ", origen);
-	cadena = concatenar(cadena, " ");
-	cadena = concatenar(cadena, destino);
-	//printf(cadena);
-	system(cadena);
+	FILE *arch1 = NULL;
+	FILE *arch2 = NULL;
+	arch1 = fopen(origen, "r");
+	arch2 = fopen(destino, "r");
+	if (arch1 != NULL && arch2 != NULL) {
+
+		char *cadena = concatenar("cp ", origen);
+		cadena = concatenar(cadena, " ");
+		cadena = concatenar(cadena, destino);
+		//printf(cadena);
+		system(cadena);
+
+		fclose(arch1);
+		fclose(arch2);
+	}
 }
 
 char *obtenerPadre(char *ruta) {
