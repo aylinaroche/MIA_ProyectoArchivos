@@ -2,7 +2,7 @@
  * comandos.c
  *
  *  Created on: 6/06/2017
- *      Author: tanya
+ *      Author: Aylin
  */
 
 #include <stdlib.h>
@@ -28,9 +28,9 @@ void verificarComando(char *com, char *atributos) {
 	char* inst = NULL;
 	int cont = 1;
 	if (strcasecmp(com, "prueba") == 0) {
-		char *r1 ="/home/tanya/workspaceNeon/ProyectoArchivos/Disco1.dsk";
-		char *r2 ="/home/tanya/workspaceNeon/ProyectoArchivos/prueba.dsk";
-		copiarFichero(r1,r2);
+		char *r1 = "/home/tanya/workspaceNeon/ProyectoArchivos/Disco1.dsk";
+		char *r2 = "/home/tanya/workspaceNeon/ProyectoArchivos/prueba.dsk";
+		copiarFichero(r1, r2);
 		printf("prueba\n");
 
 	}
@@ -1061,6 +1061,101 @@ void verificarComando(char *com, char *atributos) {
 		loss();
 
 	}
-	actualizar();
 
+	//actualizar();
+	 else if (strcasecmp(com, "load_data") == 0) {
+		//         printf("chmod\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			case 2:
+				com2 = inst;
+				break;
+			case 3:
+				com3 = inst;
+				break;
+			case 4:
+				com4 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			} else if (i == 2) {
+				atributoDisco(com2);
+			} else if (i == 3) {
+				atributoDisco(com3);
+			} else if (i == 4) {
+				atributoDisco(com4);
+			}
+		}
+		//imprimirDatos();
+		load();
+
+	} else if (strcasecmp(com, "syncronice") == 0) {
+		//         printf("chmod\n");
+		char atr[200];
+		strcpy(atr, atributos);
+		int j;
+		for (j = 0; j < 200; j++) {
+			if (atr[j] == '\\') {
+				atr[j] = ' ';
+			}
+		}
+		strcpy(atributos, atr);
+		char aux[100];
+		strcpy(aux, atributos);
+		inst = strtok(atributos, " ");
+		while (inst != NULL) {
+			inst = strtok(NULL, " ");
+			switch (cont) {
+			case 1:
+				com1 = inst;
+				break;
+			case 2:
+				com2 = inst;
+				break;
+			case 3:
+				com3 = inst;
+				break;
+			case 4:
+				com4 = inst;
+				break;
+			}
+			cont++;
+		}
+		int i;
+		for (i = 1; i < cont - 1; i++) {
+			if (i == 1) {
+				atributoDisco(com1);
+			} else if (i == 2) {
+				atributoDisco(com2);
+			} else if (i == 3) {
+				atributoDisco(com3);
+			} else if (i == 4) {
+				atributoDisco(com4);
+			}
+		}
+		//imprimirDatos();
+		syncron();
+
+	}
 }

@@ -1,8 +1,8 @@
 /*
  * estructuras.h
  *
- *  Created on: 6/06/2017
- *      Author: tanya
+ *  Created on: 16/06/2017
+ *      Author: aylin
  */
 
 #ifndef ESTRUCTURAS_H_
@@ -16,7 +16,7 @@ typedef struct ARCHIVO { //archivo //content
 } archivo;
 
 typedef struct CARPETA { //*detalle
-	archivo content[4]; //16  //archivo
+	archivo content[5]; //16  //archivo
 	int detalle; //Si ya no caben apunta a otro detalle
 } detalle;
 
@@ -32,7 +32,6 @@ typedef struct APUNTADOR { //av
 typedef struct DATOS { //bloque de archivos
 	char data[64]; //content
 } datos;
-
 
 typedef struct INODO {
 	int noInodo;
@@ -62,19 +61,46 @@ typedef struct JOURNAL {
 } journal;
 
 typedef struct DETALLE_SP { //Cola para realizar el mount
-	int arbolVirtualCount;//
+	int arbolVirtualCount; //
 	int detalleDirectorioCount;
-	int apuntadorBitArbolDirectorio;//
-	int apuntador;//********
+	int apuntadorBitArbolDirectorio; //
+	int apuntador; //********
 	int apuntadorBitDetalleDirectorio; //
-	int apuntadorDetalleDirectorio;//
+	int apuntadorDetalleDirectorio; //
 	int apuntadorBitmapInodo; //
 	int contadorJ;
+	int contadorU;
+	int contadorP;
 } detalleSB;
 
-typedef struct JOURN{
+typedef struct JOURN {
 	journal bitacora;
-}journ;
+} journ;
+
+typedef struct USERS {
+	char id[5];
+	char tipo[2];
+	char grupo[30];
+	char clave[30];
+	char usuario[30];
+} user;
+
+
+typedef struct USUARIOS {
+	user usuario;
+} usuario;
+
+typedef struct PERM {
+	char grupo[30]; // ?? Saber
+	char permiso[5];
+	char usuario[30];
+	char ruta[50];
+} perm;
+
+
+typedef struct PERMISOS {
+	perm permiso;
+} permiso;
 
 typedef struct SUPERBLOQUE {
 	int inodosCount; //
@@ -93,14 +119,16 @@ typedef struct SUPERBLOQUE {
 	int firstFreeBitTablaInodo;	//
 	int firstFreeBitBloque;	//
 	int magic; //
-	int jourfirst;//
+	int jourfirst; //
 	journ j[50];
 	detalleSB s;
+	usuario user[50];
+	permiso perm[50];
 } superbloque;
 
-typedef struct LIST{
+typedef struct LIST {
 	char nombre[20];
-}list;
+} list;
 
 typedef struct MONTAR { //Cola para realizar el mount
 	char path[70];
@@ -141,5 +169,28 @@ typedef struct MBR { //Master Boot Record -> Registro de arranque principal
 	particion part[4];
 	char* nameCopy;
 } mbr;
+
+typedef struct INO {
+	int noInodo;
+	int size;
+	int noAsignados;
+	int apuntadores[15];
+	//int apuntador;
+	int bloques[15];
+} ino;
+
+typedef struct BLO {
+	int noBloque;
+	int noAsignados;
+	//int apuntador;
+	int cont;
+	archivo datos[5];
+
+} blo;
+
+typedef struct ListaIB {
+	ino inodos[50];
+	blo bloques[50];
+} listaIB;
 
 #endif /* ESTRUCTURAS_H_ */
